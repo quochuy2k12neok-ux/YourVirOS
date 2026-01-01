@@ -2,156 +2,148 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Community OS - Cloud Terminal</title>
+    <title>Community OS - Pro Edition</title>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        body {
-            background: url('https://w.wallhaven.cc/full/85/wallhaven-85p87y.jpg') no-repeat center center fixed;
-            background-size: cover;
-            overflow: hidden;
-            font-family: 'Segoe UI', sans-serif;
+        :root { --accent-color: #3b82f6; }
+        body { 
+            background: url('https://w.wallhaven.cc/full/xl/wallhaven-xlre9z.jpg') no-repeat center center fixed; 
+            background-size: cover; overflow: hidden; font-family: 'Segoe UI', sans-serif; transition: background 0.5s;
         }
 
-        /* Hiệu ứng kính mờ cho cửa sổ */
+        /* Desktop Icons */
+        .desktop-icon { 
+            width: 80px; display: flex; flex-direction: column; align-items: center; 
+            gap: 5px; cursor: pointer; padding: 10px; border-radius: 8px; transition: 0.2s;
+        }
+        .desktop-icon:hover { background: rgba(255,255,255,0.1); }
+        .desktop-icon img { width: 45px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3)); }
+        .desktop-icon span { font-size: 11px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); color: white; }
+
+        /* Windows */
         .window {
-            position: absolute;
-            min-width: 400px;
-            min-height: 300px;
-            background: rgba(20, 20, 20, 0.85);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            display: none;
-            flex-direction: column;
+            position: absolute; min-width: 500px; min-height: 350px; 
+            background: rgba(15, 15, 15, 0.8); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: none; flex-direction: column; z-index: 10;
         }
-
-        .title-bar {
-            padding: 10px 15px;
-            background: rgba(255,255,255,0.05);
-            cursor: move;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 10px 10px 0 0;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 600;
+        .title-bar { 
+            padding: 12px; cursor: move; display: flex; justify-content: space-between; 
+            align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); 
         }
+        .btn-red { width: 12px; height: 12px; background: #ff5f56; border-radius: 50%; cursor: pointer; }
+        .content { flex: 1; border-radius: 0 0 12px 12px; overflow: hidden; background: #000; }
+        iframe { width: 100%; height: 100%; border: none; }
 
-        .content { flex: 1; position: relative; }
-        iframe { width: 100%; height: 100%; border: none; background: #000; }
-
-        /* Taskbar phong cách Windows 11 / macOS */
+        /* Taskbar */
         .taskbar {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            height: 60px;
-            background: rgba(15, 15, 15, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            gap: 15px;
-            z-index: 1000;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 48px;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 9999;
         }
+        .start-btn { font-weight: bold; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        #clock { font-size: 13px; color: white; font-weight: 500; }
 
-        .app-icon {
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            transition: transform 0.2s;
+        /* Start Menu */
+        #start-menu {
+            position: fixed; bottom: 55px; left: 10px; width: 300px; 
+            background: rgba(20,20,20,0.95); border-radius: 12px; border: 1px solid #444;
+            display: none; padding: 20px; z-index: 10000;
         }
-
-        .app-icon:hover { transform: scale(1.2) translateY(-5px); }
-
-        /* Nút điều khiển cửa sổ */
-        .controls span {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-left: 8px;
-            cursor: pointer;
-        }
-        .close { background: #ff5f56; }
-        .min { background: #ffbd2e; }
-        .max { background: #27c93f; }
     </style>
 </head>
 <body>
 
-    <div id="setup-modal" class="fixed inset-0 bg-black/80 z-[2000] flex items-center justify-center">
-        <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 w-[400px]">
-            <h2 class="text-blue-400 font-bold mb-4 text-center">CÀI ĐẶT KẾT NỐI VPS</h2>
-            <input type="text" id="sshInput" placeholder="Dán link Tmate (SSH)..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded mb-3 text-sm outline-none text-white">
-            <input type="text" id="fileInput" placeholder="Dán link Cloudflare (File)..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded mb-4 text-sm outline-none text-white">
-            <button onclick="startOS()" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded font-bold text-white transition">KHỞI ĐỘNG HỆ THỐNG</button>
+    <div class="p-5 flex flex-col gap-4">
+        <div class="desktop-icon" onclick="openWindow('win-ssh')">
+            <img src="https://cdn-icons-png.flaticon.com/512/906/906324.png">
+            <span>Terminal</span>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('win-file')">
+            <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png">
+            <span>My Files</span>
+        </div>
+        <div class="desktop-icon" onclick="openWindow('win-settings')">
+            <img src="https://cdn-icons-png.flaticon.com/512/3132/3132141.png">
+            <span>Settings</span>
         </div>
     </div>
 
-    <div id="win-terminal" class="window">
-        <div class="title-bar">
-            <span>💻 Console Terminal</span>
-            <div class="controls">
-                <span class="min" onclick="$('#win-terminal').fadeOut()"></span>
-                <span class="close" onclick="$('#win-terminal').fadeOut()"></span>
-            </div>
-        </div>
+    <div id="win-ssh" class="window" style="top:10%; left:20%;">
+        <div class="title-bar"><span>💻 Terminal</span><div class="btn-red" onclick="closeWindow('win-ssh')"></div></div>
         <div class="content"><iframe id="frame-ssh"></iframe></div>
     </div>
 
-    <div id="win-files" class="window" style="left: 100px; top: 50px;">
-        <div class="title-bar">
-            <span>📂 File Manager (SFTP)</span>
-            <div class="controls">
-                <span class="min" onclick="$('#win-files').fadeOut()"></span>
-                <span class="close" onclick="$('#win-files').fadeOut()"></span>
-            </div>
-        </div>
+    <div id="win-file" class="window" style="top:15%; left:25%;">
+        <div class="title-bar"><span>📂 File Manager</span><div class="btn-red" onclick="closeWindow('win-file')"></div></div>
         <div class="content"><iframe id="frame-file"></iframe></div>
     </div>
 
+    <div id="win-settings" class="window" style="top:30%; left:35%; min-width:300px;">
+        <div class="title-bar"><span>⚙️ Settings</span><div class="btn-red" onclick="closeWindow('win-settings')"></div></div>
+        <div class="content p-5 bg-slate-900 h-full">
+            <h3 class="text-blue-400 mb-2 font-bold">Kết nối VPS</h3>
+            <input id="in-ssh" type="text" placeholder="Link Tmate..." class="w-full bg-black border border-slate-700 p-2 text-xs mb-2 text-white">
+            <input id="in-file" type="text" placeholder="Link Cloudflare..." class="w-full bg-black border border-slate-700 p-2 text-xs mb-4 text-white">
+            <button onclick="applySettings()" class="w-full bg-blue-600 py-2 rounded text-xs font-bold mb-5">ÁP DỤNG</button>
+            
+            <h3 class="text-blue-400 mb-2 font-bold">Hình nền (URL)</h3>
+            <input id="in-bg" type="text" placeholder="Dán link ảnh..." class="w-full bg-black border border-slate-700 p-2 text-xs mb-2 text-white">
+            <button onclick="changeBG()" class="w-full bg-purple-600 py-2 rounded text-xs font-bold">ĐỔI HÌNH NỀN</button>
+        </div>
+    </div>
+
     <div class="taskbar">
-        <img src="https://cdn-icons-png.flaticon.com/512/145/145867.png" class="app-icon" onclick="$('#setup-modal').fadeIn()" title="Cấu hình">
-        <img src="https://cdn-icons-png.flaticon.com/512/906/906324.png" class="app-icon" onclick="$('#win-terminal').show()" title="Terminal">
-        <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png" class="app-icon" onclick="$('#win-files').show()" title="Files">
-        <img src="https://cdn-icons-png.flaticon.com/512/2920/2920244.png" class="app-icon" onclick="location.reload()" title="Reset">
+        <div class="start-btn" onclick="$('#start-menu').toggle()">
+            <img src="https://cdn-icons-png.flaticon.com/512/174/174881.png" class="w-5"> Start
+        </div>
+        <div id="clock">00:00:00</div>
+    </div>
+
+    <div id="start-menu">
+        <h2 class="text-white font-bold mb-4">Cộng Đồng OS</h2>
+        <ul class="text-sm text-slate-400 space-y-3">
+            <li class="hover:text-white cursor-pointer" onclick="alert('Phiên bản v1.0 Pro')">ℹ️ Thông tin hệ thống</li>
+            <li class="hover:text-white cursor-pointer" onclick="location.reload()">🔄 Khởi động lại</li>
+            <li class="hover:text-white cursor-pointer text-red-400" onclick="window.close()">🔴 Tắt máy</li>
+        </ul>
     </div>
 
     <script>
         $(function() {
-            // Cho phép kéo thả cửa sổ
             $(".window").draggable({ handle: ".title-bar" }).resizable();
+            updateClock();
+            setInterval(updateClock, 1000);
             
-            // Ưu tiên cửa sổ được nhấn
-            $(".window").mousedown(function() {
-                $(".window").css("z-index", 10);
-                $(this).css("z-index", 100);
-            });
+            // Load từ bộ nhớ
+            if(localStorage.getItem('bg')) $('body').css('background-image', `url(${localStorage.getItem('bg')})`);
         });
 
-        function startOS() {
-            const ssh = document.getElementById('sshInput').value;
-            const file = document.getElementById('fileInput').value;
-            
-            if(ssh) {
-                document.getElementById('frame-ssh').src = ssh;
-                $('#win-terminal').fadeIn();
+        function updateClock() {
+            const now = new Date();
+            $('#clock').text(now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0'));
+        }
+
+        function openWindow(id) { $(`#${id}`).fadeIn(200); }
+        function closeWindow(id) { $(`#${id}`).fadeOut(200); }
+
+        function applySettings() {
+            const s = $('#in-ssh').val(), f = $('#in-file').val();
+            if(s) $('#frame-ssh').attr('src', s);
+            if(f) $('#frame-file').attr('src', f);
+            alert("Đã kết nối!");
+        }
+
+        function changeBG() {
+            const bg = $('#in-bg').val();
+            if(bg) {
+                $('body').css('background-image', `url(${bg})`);
+                localStorage.setItem('bg', bg);
             }
-            if(file) {
-                document.getElementById('frame-file').src = file;
-                $('#win-files').fadeIn();
-            }
-            $('#setup-modal').fadeOut();
         }
     </script>
 </body>
