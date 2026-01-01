@@ -3,254 +3,315 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Community OS Titanium - v4.0 Final</title>
+    <title>Community OS Titanium Enterprise - v5.0 Final</title>
     
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
     <style>
-        /* --- 1. CORE SYSTEM CSS (Phần này rất dài để tạo giao diện xịn) --- */
+        /* --- 1. SYSTEM CSS CORE --- */
         :root {
-            --glass: rgba(15, 15, 15, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass: rgba(18, 18, 18, 0.75);
+            --glass-bright: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.15);
             --accent: #0078d4;
-            --taskbar-bg: rgba(20, 20, 20, 0.85);
+            --font-main: 'Segoe UI', system-ui, sans-serif;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; cursor: default; -webkit-font-smoothing: antialiased; }
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: default; }
         body {
             background: url('https://w.wallhaven.cc/full/pk/wallhaven-pk63m9.jpg') no-repeat center center fixed;
-            background-size: cover; height: 100vh; font-family: 'Segoe UI', system-ui; color: white; overflow: hidden;
+            background-size: cover; height: 100vh; font-family: var(--font-main); color: white; overflow: hidden;
         }
 
-        /* --- BOOT SCREEN --- */
+        /* --- BOOT & LOGIN --- */
         #boot-screen {
-            position: fixed; inset: 0; background: black; z-index: 99999;
+            position: fixed; inset: 0; background: #000; z-index: 99999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #222; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* --- DESKTOP ENGINE --- */
-        #desktop { height: calc(100vh - 50px); position: relative; padding: 10px; z-index: 10; }
-        
+        /* --- DESKTOP --- */
+        #desktop { height: calc(100vh - 50px); position: relative; z-index: 10; padding: 15px; }
         .desktop-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, 90px);
-            grid-template-rows: repeat(auto-fill, 100px); grid-flow: column; gap: 10px; height: 100%;
+            display: grid; grid-template-columns: repeat(auto-fill, 95px);
+            grid-template-rows: repeat(auto-fill, 105px); grid-flow: column; gap: 15px; height: 100%;
         }
-
         .icon {
-            width: 85px; height: 95px; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; border-radius: 6px; transition: 0.2s; border: 1px solid transparent;
+            width: 90px; height: 100px; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; border-radius: 10px; transition: 0.2s; border: 1px solid transparent;
         }
-        .icon:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
-        .icon i { font-size: 36px; margin-bottom: 8px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); }
-        .icon span { font-size: 11px; text-align: center; text-shadow: 1px 1px 3px black; font-weight: 500; }
+        .icon:hover { background: var(--glass-bright); border-color: var(--border); backdrop-filter: blur(5px); }
+        .icon i { font-size: 38px; margin-bottom: 8px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
+        .icon span { font-size: 11px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); text-align: center; }
 
         /* --- WINDOWS FRAMEWORK --- */
         .window {
             position: absolute; background: var(--glass); backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border); border-radius: 10px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: none; flex-direction: column;
-            z-index: 100; min-width: 250px; min-height: 150px;
+            border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
+            display: none; flex-direction: column; z-index: 100; min-width: 300px; min-height: 200px;
+            animation: win-open 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        @keyframes win-open { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
         .title-bar {
-            height: 38px; padding: 0 12px; display: flex; justify-content: space-between;
-            align-items: center; background: rgba(255, 255, 255, 0.05); cursor: move; border-radius: 10px 10px 0 0;
+            height: 42px; padding: 0 15px; display: flex; justify-content: space-between;
+            align-items: center; background: rgba(255, 255, 255, 0.05); cursor: move; border-radius: 12px 12px 0 0;
         }
-        .win-title { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .win-controls { display: flex; gap: 8px; }
-        .dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
-        .dot-close { background: #ff5f56; } .dot-min { background: #ffbd2e; } .dot-max { background: #27c93f; }
+        .win-title { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .win-controls { display: flex; gap: 10px; }
+        .dot { width: 13px; height: 13px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .dot-close { background: #ff5f56; } .dot-close:hover { background: #ff3b30; }
+        .dot-min { background: #ffbd2e; } .dot-max { background: #27c93f; }
 
-        .content { flex: 1; overflow: auto; position: relative; }
+        .content { flex: 1; overflow: auto; position: relative; border-radius: 0 0 12px 12px; }
+        iframe { width: 100%; height: 100%; border: none; background: white; }
 
-        /* --- APPS SPECIFIC --- */
-        #terminal-out { background: #000; color: #0f0; font-family: 'Consolas', monospace; padding: 15px; height: 100%; overflow-y: auto; font-size: 13px; }
-        .file-item { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .file-item:hover { background: rgba(255,255,255,0.1); }
-
+        /* --- APP SPECIFICS --- */
+        #term-body { background: #000; color: #10b981; font-family: 'Consolas', monospace; padding: 15px; font-size: 14px; height: 100%; }
+        .btn-calc { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; }
+        .btn-calc:hover { background: rgba(255,255,255,0.2); }
+        .btn-op { background: #f59e0b; font-weight: bold; }
+        
         /* --- TASKBAR & START --- */
         #taskbar {
             position: fixed; bottom: 0; left: 0; right: 0; height: 50px;
-            background: var(--taskbar-bg); backdrop-filter: blur(20px);
+            background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(20px);
             display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 10000;
         }
-        .start-btn { font-size: 24px; color: #0078d4; cursor: pointer; transition: 0.3s; }
-        .start-btn:hover { transform: scale(1.2) rotate(180deg); }
-
+        .start-btn { font-size: 26px; color: var(--accent); cursor: pointer; transition: 0.3s; }
+        .start-btn:hover { transform: scale(1.1) rotate(90deg); }
+        
         #start-menu {
-            position: absolute; bottom: 60px; left: 10px; width: 450px; height: 550px;
-            background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(30px); border-radius: 12px;
-            border: 1px solid var(--glass-border); display: none; z-index: 10001; padding: 25px;
+            position: absolute; bottom: 60px; left: 10px; width: 400px; height: 520px;
+            background: rgba(15, 15, 15, 0.98); backdrop-filter: blur(35px); border-radius: 15px;
+            border: 1px solid var(--border); display: none; z-index: 10001; padding: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9);
         }
 
         /* --- WIDGETS --- */
-        .widget { position: absolute; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; backdrop-filter: blur(10px); }
-        #weather-widget { top: 20px; right: 20px; width: 200px; }
+        .widget { position: absolute; background: rgba(0,0,0,0.2); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        #weather { top: 30px; right: 30px; width: 220px; }
+        #clock-big { top: 30px; left: 50%; transform: translateX(-50%); text-align: center; }
 
         /* --- CONTEXT MENU --- */
-        #context-menu {
-            position: absolute; background: rgba(30, 30, 30, 0.9); backdrop-filter: blur(15px);
-            border: 1px solid #444; border-radius: 8px; width: 180px; display: none; z-index: 100000;
-            padding: 5px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        #ctx {
+            position: absolute; background: rgba(30, 30, 30, 0.95); border-radius: 8px;
+            width: 200px; display: none; z-index: 100000; padding: 5px; border: 1px solid #444;
         }
-        .menu-item { padding: 8px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; }
-        .menu-item:hover { background: var(--accent); }
+        .ctx-item { padding: 10px 15px; font-size: 13px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .ctx-item:hover { background: var(--accent); }
     </style>
 </head>
-<body oncontextmenu="return showContextMenu(event)">
+<body oncontextmenu="return openCtx(event)">
 
     <div id="boot-screen">
-        <img src="https://cdn-icons-png.flaticon.com/512/732/732221.png" width="80" class="mb-8">
         <div class="spinner"></div>
-        <p class="mt-4 text-gray-500 font-mono text-sm">System Titanium Starting...</p>
+        <h1 class="mt-6 text-xl font-bold tracking-widest text-blue-500">TITANIUM OS</h1>
+        <p class="mt-2 text-gray-500 text-xs font-mono">Loading System Modules...</p>
     </div>
 
     <div id="desktop">
+        <div id="clock-big">
+            <h1 id="b-time" class="text-7xl font-light">00:00</h1>
+            <p id="b-date" class="text-blue-400 font-bold uppercase tracking-widest text-xs">Thứ 5, 01 Tháng 01</p>
+        </div>
+
+        <div class="widget" id="weather">
+            <div class="flex justify-between items-center">
+                <i class="fas fa-cloud-sun text-4xl text-yellow-400"></i>
+                <div class="text-right">
+                    <p class="text-3xl font-bold">29°C</p>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase">Sài Gòn, VN</p>
+                </div>
+            </div>
+        </div>
+
         <div class="desktop-grid" id="desktop-icons">
             </div>
-
-        <div class="widget" id="weather-widget">
-            <div class="flex justify-between items-center">
-                <i class="fas fa-sun text-yellow-400 text-3xl"></i>
-                <div class="text-right">
-                    <p class="text-2xl font-bold">32°C</p>
-                    <p class="text-[10px] text-gray-400">TP. Hồ Chí Minh</p>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <div id="win-terminal" class="window" style="width: 700px; height: 450px;">
+    <div id="win-terminal" class="window" style="width: 750px; height: 480px; top: 100px; left: 150px;">
         <div class="title-bar">
-            <div class="win-title"><i class="fas fa-terminal"></i> Terminal</div>
+            <div class="win-title"><i class="fas fa-terminal text-green-500"></i> Root Terminal</div>
             <div class="win-controls"><div class="dot dot-min"></div><div class="dot dot-close" onclick="closeWin('win-terminal')"></div></div>
         </div>
-        <div class="content" id="terminal-out">
-            <div>Community OS Titanium [Version 4.0.Final]</div>
-            <div>(c) 2026 Community Corp. All rights reserved.</div><br>
-            <div id="term-history"></div>
-            <div class="flex"><span>root@community:~$ </span><input type="text" id="term-input" class="bg-transparent border-none outline-none text-green-500 ml-2 w-full"></div>
+        <div class="content" id="term-body">
+            <div id="term-out">Titanium Kernel v5.0.0-Enterprise<br>Welcome administrator. Type 'help' for commands.<br><br></div>
+            <div class="flex"><span>root@titanium:~#</span><input type="text" id="term-in" class="bg-transparent border-none outline-none ml-2 w-full text-green-400"></div>
         </div>
     </div>
 
-    <div id="win-explorer" class="window" style="width: 800px; height: 500px;">
+    <div id="win-explorer" class="window" style="width: 850px; height: 550px; top: 50px; left: 50px;">
         <div class="title-bar">
-            <div class="win-title"><i class="fas fa-folder"></i> File Explorer</div>
+            <div class="win-title"><i class="fas fa-folder text-yellow-500"></i> File Explorer</div>
             <div class="win-controls"><div class="dot dot-close" onclick="closeWin('win-explorer')"></div></div>
         </div>
-        <div class="flex h-full">
-            <div class="w-48 bg-white/5 p-4 text-xs border-r border-white/10">
-                <p class="mb-4 text-gray-500 uppercase font-bold">Quick Access</p>
-                <div class="space-y-3">
-                    <div class="hover:text-blue-400 cursor-pointer"><i class="fas fa-home mr-2"></i> Desktop</div>
-                    <div class="hover:text-blue-400 cursor-pointer"><i class="fas fa-download mr-2"></i> Downloads</div>
-                    <div class="hover:text-blue-400 cursor-pointer"><i class="fas fa-file mr-2"></i> Documents</div>
+        <div class="content flex bg-[#111]">
+            <div class="w-56 border-r border-white/5 p-4 space-y-4">
+                <p class="text-[10px] font-bold text-gray-500 uppercase">Quick Access</p>
+                <div class="text-xs space-y-2">
+                    <div class="p-2 hover:bg-white/10 rounded cursor-pointer"><i class="fas fa-home mr-3"></i> Home</div>
+                    <div class="p-2 hover:bg-white/10 rounded cursor-pointer"><i class="fas fa-desktop mr-3"></i> Desktop</div>
+                    <div class="p-2 hover:bg-white/10 rounded cursor-pointer"><i class="fas fa-download mr-3"></i> Downloads</div>
                 </div>
             </div>
-            <div class="flex-1 p-4 overflow-y-auto" id="file-list">
+            <div class="flex-1 p-6 grid grid-cols-4 content-start gap-4" id="explorer-view">
                 </div>
         </div>
     </div>
 
-    <div id="win-store" class="window" style="width: 900px; height: 600px;">
-        <div class="title-bar"><div class="win-title"><i class="fas fa-shopping-bag"></i> App Store</div><div class="win-controls"><div class="dot dot-close" onclick="closeWin('win-store')"></div></div></div>
-        <div class="content p-8">
-            <h1 class="text-3xl font-bold mb-8">Featured Applications</h1>
-            <div class="grid grid-cols-3 gap-6" id="store-items">
-                </div>
+    <div id="win-notepad" class="window" style="width: 500px; height: 400px; top: 200px; left: 400px;">
+        <div class="title-bar">
+            <div class="win-title"><i class="fas fa-file-alt text-blue-300"></i> Notepad</div>
+            <div class="win-controls"><div class="dot dot-close" onclick="closeWin('win-notepad')"></div></div>
         </div>
+        <div class="content bg-white">
+            <textarea class="w-full h-full p-4 text-black outline-none border-none resize-none font-mono text-sm" placeholder="Write something..."></textarea>
+        </div>
+    </div>
+
+    <div id="win-settings" class="window" style="width: 450px; height: 500px; top: 10%; left: 30%;">
+        <div class="title-bar">
+            <div class="win-title"><i class="fas fa-cog text-gray-400"></i> System Settings</div>
+            <div class="win-controls"><div class="dot dot-close" onclick="closeWin('win-settings')"></div></div>
+        </div>
+        <div class="content p-8 bg-[#1a1a1a]">
+            <h2 class="text-xl font-bold mb-6">Settings</h2>
+            <div class="space-y-6">
+                <div>
+                    <label class="text-xs text-gray-500 block mb-2">WALLPAPER URL</label>
+                    <input id="set-bg" type="text" class="w-full bg-black border border-gray-800 p-3 rounded text-sm outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-500 block mb-2">VPS SSH (TMATE LINK)</label>
+                    <input id="set-ssh" type="text" class="w-full bg-black border border-gray-800 p-3 rounded text-sm outline-none focus:border-green-500">
+                </div>
+                <button onclick="applySettings()" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded font-bold transition">SAVE CHANGES</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="win-calc" class="window" style="width: 300px; height: 450px; top: 50px; right: 100px;">
+        <div class="title-bar">
+            <div class="win-title"><i class="fas fa-calculator"></i> Calculator</div>
+            <div class="win-controls"><div class="dot dot-close" onclick="closeWin('win-calc')"></div></div>
+        </div>
+        <div class="content p-4 grid grid-cols-4 gap-2 bg-[#1a1a1a]">
+            <div class="col-span-4 bg-black p-4 text-right text-2xl font-mono mb-2">0</div>
+            <div class="btn-calc">C</div><div class="btn-calc">±</div><div class="btn-calc">%</div><div class="btn-calc btn-op">/</div>
+            <div class="btn-calc">7</div><div class="btn-calc">8</div><div class="btn-calc">9</div><div class="btn-calc btn-op">*</div>
+            <div class="btn-calc">4</div><div class="btn-calc">5</div><div class="btn-calc">6</div><div class="btn-calc btn-op">-</div>
+            <div class="btn-calc">1</div><div class="btn-calc">2</div><div class="btn-calc">3</div><div class="btn-calc btn-op">+</div>
+            <div class="btn-calc col-span-2 text-center">0</div><div class="btn-calc">.</div><div class="btn-calc bg-blue-600 font-bold">=</div>
+        </div>
+    </div>
+
+    <div id="win-browser" class="window" style="width: 900px; height: 600px; top: 20px; left: 100px;">
+        <div class="title-bar">
+            <div class="win-title"><i class="fas fa-globe text-blue-400"></i> Web Browser</div>
+            <div class="win-controls"><div class="dot dot-close" onclick="closeWin('win-browser')"></div></div>
+        </div>
+        <div class="bg-[#222] p-2 flex gap-2">
+            <input type="text" id="br-url" class="flex-1 bg-black border border-gray-700 px-4 py-1 rounded-full text-xs text-white outline-none" value="https://www.google.com/search?igu=1">
+            <button onclick="navBr()" class="bg-blue-600 px-4 py-1 rounded-full text-[10px] font-bold">GO</button>
+        </div>
+        <div class="content"><iframe id="br-frame" src="https://www.google.com/search?igu=1"></iframe></div>
     </div>
 
     <div id="taskbar">
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-5">
             <i class="fab fa-windows start-btn" onclick="$('#start-menu').toggle()"></i>
-            <div id="active-apps" class="flex gap-2"></div>
+            <div id="active-icons" class="flex gap-3"></div>
         </div>
         <div class="flex items-center gap-4">
-            <div class="text-right leading-tight">
-                <p id="clock-time" class="text-sm font-bold">12:00</p>
-                <p id="clock-date" class="text-[10px] text-gray-400">01/01/2026</p>
+            <div class="text-right leading-none">
+                <p id="t-time" class="text-sm font-bold">00:00</p>
+                <p id="t-date" class="text-[10px] text-gray-500 mt-1">01/01/2026</p>
             </div>
-            <i class="fas fa-wifi text-xs"></i>
-            <i class="fas fa-volume-up text-xs"></i>
+            <i class="fas fa-volume-up text-xs text-gray-400"></i>
+            <i class="fas fa-wifi text-xs text-gray-400"></i>
         </div>
-    </div>
-
-    <div id="context-menu">
-        <div class="menu-item" onclick="location.reload()"><i class="fas fa-sync-alt mr-2"></i> Refresh</div>
-        <div class="menu-item"><i class="fas fa-sort mr-2"></i> Sort icons</div>
-        <hr class="border-white/10 my-1">
-        <div class="menu-item" onclick="openWin('win-settings')"><i class="fas fa-desktop mr-2"></i> Personalize</div>
     </div>
 
     <div id="start-menu">
-        <div class="flex items-center gap-4 mb-8">
-            <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl font-bold">A</div>
-            <div><p class="font-bold">Administrator</p><p class="text-xs text-gray-500">Titanium Member</p></div>
+        <div class="flex items-center gap-4 mb-8 bg-white/5 p-4 rounded-xl">
+            <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-800 rounded-full flex items-center justify-center font-bold">AD</div>
+            <div><p class="font-bold text-sm">Administrator</p><p class="text-[10px] text-gray-500 tracking-widest uppercase">Titanium Edition</p></div>
         </div>
-        <div class="grid grid-cols-2 gap-4" id="start-apps">
+        <div class="grid grid-cols-2 gap-3" id="start-list">
             </div>
+        <div class="absolute bottom-5 left-5 right-5 flex justify-between border-t border-white/5 pt-4">
+            <button onclick="location.reload()" class="text-xs hover:text-blue-400"><i class="fas fa-sync-alt mr-2"></i>Restart</button>
+            <button onclick="window.close()" class="text-xs hover:text-red-500"><i class="fas fa-power-off mr-2"></i>Shutdown</button>
+        </div>
     </div>
 
-    <audio id="snd-boot" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
+    <div id="ctx">
+        <div class="ctx-item" onclick="location.reload()"><i class="fas fa-sync-alt text-blue-400"></i> Refresh</div>
+        <div class="ctx-item"><i class="fas fa-sort-amount-down text-gray-400"></i> Sort by</div>
+        <hr class="border-white/10 my-1">
+        <div class="ctx-item" onclick="openWin('win-settings')"><i class="fas fa-palette text-pink-400"></i> Personalize</div>
+    </div>
+
+    <audio id="snd-click" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
 
     <script>
-        // --- DATA REGISTRY (Hệ thống dữ liệu của OS) ---
         const APPS = [
-            { id: 'terminal', name: 'Terminal', icon: 'fas fa-terminal', color: 'text-green-500' },
+            { id: 'terminal', name: 'Terminal', icon: 'fas fa-terminal', color: 'text-green-400' },
             { id: 'explorer', name: 'Explorer', icon: 'fas fa-folder', color: 'text-yellow-500' },
-            { id: 'store', name: 'App Store', icon: 'fas fa-shopping-bag', color: 'text-pink-500' },
-            { id: 'browser', name: 'Browser', icon: 'fas fa-globe', color: 'text-blue-500' },
             { id: 'notepad', name: 'Notepad', icon: 'fas fa-file-alt', color: 'text-blue-300' },
-            { id: 'taskmgr', name: 'Task Mgr', icon: 'fas fa-microchip', color: 'text-red-500' },
-            { id: 'music', name: 'Music', icon: 'fas fa-music', color: 'text-purple-400' },
+            { id: 'browser', name: 'Web Browser', icon: 'fas fa-globe', color: 'text-blue-500' },
+            { id: 'calc', name: 'Calculator', icon: 'fas fa-calculator', color: 'text-orange-400' },
             { id: 'settings', name: 'Settings', icon: 'fas fa-cog', color: 'text-gray-400' },
-            { id: 'paint', name: 'Paint', icon: 'fas fa-paint-brush', color: 'text-orange-400' },
-            { id: 'calc', name: 'Calculator', icon: 'fas fa-calculator', color: 'text-indigo-400' },
-            { id: 'video', name: 'Video Player', icon: 'fas fa-play-circle', color: 'text-red-400' }
+            { id: 'music', name: 'Music', icon: 'fas fa-music', color: 'text-pink-500' },
+            { id: 'taskmgr', name: 'Task Mgr', icon: 'fas fa-microchip', color: 'text-red-500' },
+            { id: 'paint', name: 'Paint Pro', icon: 'fas fa-paint-brush', color: 'text-purple-400' },
+            { id: 'store', name: 'App Store', icon: 'fas fa-shopping-bag', color: 'text-green-500' }
         ];
 
-        const FILES = [
-            { name: 'system_core.dll', size: '4.2 MB', type: 'System' },
-            { name: 'readme.txt', size: '1 KB', type: 'Text' },
-            { name: 'wallpaper.jpg', size: '2.5 MB', type: 'Image' },
-            { name: 'password.vault', size: '12 KB', type: 'Secure' }
-        ];
-
-        // --- SYSTEM ENGINE ---
         $(document).ready(function() {
             // Boot sequence
-            setTimeout(() => {
-                $('#boot-screen').fadeOut(1000);
-                document.getElementById('snd-boot').play();
-            }, 3000);
+            setTimeout(() => $('#boot-screen').fadeOut(800), 2500);
 
-            initDesktop();
-            initStartMenu();
-            initStore();
-            initTerminal();
-            updateClock();
-            setInterval(updateClock, 1000);
+            // Initialize UI
+            renderDesktop();
+            renderStart();
+            updateTime();
+            setInterval(updateTime, 1000);
 
-            // Window Logic
-            $('.window').draggable({ handle: '.title-bar', stack: '.window' }).resizable();
+            // Window Engine
+            $(".window").draggable({ 
+                handle: ".title-bar", 
+                containment: "window",
+                start: function() { $(this).css('opacity', 0.8); },
+                stop: function() { $(this).css('opacity', 1); }
+            }).resizable({ minWidth: 250, minHeight: 200 });
+
+            // Layer Management
             $(document).on('mousedown', '.window', function() {
-                $('.window').css('z-index', 100);
+                $(".window").css('z-index', 100);
                 $(this).css('z-index', 1000);
             });
+
+            // Terminal Core
+            initTerminal();
+            
+            // Load saved settings
+            loadSettings();
         });
 
-        function initDesktop() {
+        function renderDesktop() {
             const grid = $('#desktop-icons');
+            grid.empty();
             APPS.forEach(app => {
                 grid.append(`
-                    <div class="icon" ondblclick="openWin('win-${app.id}')">
+                    <div class="icon" onclick="openWin('win-${app.id}')">
                         <i class="${app.icon} ${app.color}"></i>
                         <span>${app.name}</span>
                     </div>
@@ -258,11 +319,11 @@
             });
         }
 
-        function initStartMenu() {
-            const startGrid = $('#start-apps');
+        function renderStart() {
+            const list = $('#start-list');
             APPS.forEach(app => {
-                startGrid.append(`
-                    <div class="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg cursor-pointer" onclick="openWin('win-${app.id}'); $('#start-menu').hide()">
+                list.append(`
+                    <div class="flex items-center gap-4 p-3 hover:bg-white/10 rounded-lg cursor-pointer transition" onclick="openWin('win-${app.id}'); $('#start-menu').hide()">
                         <i class="${app.icon} ${app.color} text-xl"></i>
                         <span class="text-sm font-medium">${app.name}</span>
                     </div>
@@ -270,83 +331,96 @@
             });
         }
 
-        function initStore() {
-            const store = $('#store-items');
-            APPS.forEach(app => {
-                store.append(`
-                    <div class="bg-white/5 p-6 rounded-2xl border border-white/10 hover:border-blue-500 transition">
-                        <i class="${app.icon} text-5xl mb-4 ${app.color}"></i>
-                        <h3 class="text-xl font-bold">${app.name} Pro</h3>
-                        <p class="text-xs text-gray-500 mb-6">Phiên bản doanh nghiệp hỗ trợ đa nền tảng.</p>
-                        <button class="w-full bg-blue-600 py-2 rounded-lg text-sm font-bold">Installed</button>
-                    </div>
-                `);
-            });
-        }
-
-        // --- APPS LOGIC ---
         function openWin(id) {
             $(`#${id}`).fadeIn(200).css('display', 'flex');
-            updateActiveApps();
+            $(".window").css('z-index', 100);
+            $(`#${id}`).css('z-index', 1000);
+            playSound();
+            updateActiveIcons();
         }
 
         function closeWin(id) {
             $(`#${id}`).fadeOut(200);
-            updateActiveApps();
+            setTimeout(updateActiveIcons, 300);
         }
 
-        function updateActiveApps() {
-            const bar = $('#active-apps');
+        function updateActiveIcons() {
+            const bar = $('#active-icons');
             bar.empty();
             $('.window:visible').each(function() {
-                const id = $(this).attr('id');
-                const app = APPS.find(a => `win-${a.id}` === id);
+                const id = $(this).attr('id').replace('win-', '');
+                const app = APPS.find(a => a.id === id);
                 if(app) {
-                    bar.append(`<div class="w-10 h-10 bg-white/10 rounded flex items-center justify-center border-b-2 border-blue-500"><i class="${app.icon} ${app.color}"></i></div>`);
+                    bar.append(`<div class="w-10 h-10 bg-white/10 rounded flex items-center justify-center border-b-2 border-blue-500 animate-bounce"><i class="${app.icon} ${app.color}"></i></div>`);
                 }
             });
         }
 
-        function updateClock() {
+        function updateTime() {
             const now = new Date();
-            $('#clock-time').text(now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'));
-            $('#clock-date').text(now.toLocaleDateString('vi-VN'));
+            const h = now.getHours().toString().padStart(2, '0');
+            const m = now.getMinutes().toString().padStart(2, '0');
+            const d = now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit' });
+            
+            $('#t-time, #b-time').text(`${h}:${m}`);
+            $('#t-date, #b-date').text(d);
         }
 
-        function showContextMenu(e) {
+        function openCtx(e) {
             e.preventDefault();
-            $('#context-menu').css({ top: e.pageY, left: e.pageX }).fadeIn(100);
+            $('#ctx').css({ top: e.pageY, left: e.pageX }).fadeIn(100);
             return false;
         }
 
-        $(document).click(() => $('#context-menu, #start-menu').hide());
+        $(document).click(() => $('#ctx, #start-menu').hide());
 
-        // --- TERMINAL LOGIC ---
         function initTerminal() {
-            $('#term-input').on('keydown', function(e) {
+            $('#term-in').on('keydown', function(e) {
                 if(e.key === 'Enter') {
-                    const cmd = $(this).val();
-                    const hist = $('#term-history');
-                    hist.append(`<div>root@community:~$ ${cmd}</div>`);
+                    const cmd = $(this).val().toLowerCase().trim();
+                    const out = $('#term-out');
+                    out.append(`<div>root@titanium:~# ${cmd}</div>`);
                     
-                    // Xử lý tập lệnh khổng lồ
-                    const action = cmd.toLowerCase();
-                    if(action === 'help') hist.append('<div>Lệnh hỗ trợ: help, ls, clear, date, sys, whoami, open [app]</div>');
-                    else if(action === 'ls') hist.append('<div>bin/  boot/  dev/  etc/  home/  lib/  root/</div>');
-                    else if(action === 'clear') hist.html('');
-                    else if(action === 'sys') hist.append('<div>Titanium Kernel v4.0.1-Final. Node: Community-Web-1</div>');
-                    else if(action.startsWith('open ')) {
-                        const target = action.replace('open ', '');
-                        openWin(`win-${target}`);
-                        hist.append(`<div class="text-blue-400 text-xs">Launching ${target}... Done.</div>`);
+                    if(cmd === 'help') out.append('<div class="text-gray-400">Available: help, cls, ls, sys, fetch, open [app], date, whoami</div>');
+                    else if(cmd === 'cls') out.html('');
+                    else if(cmd === 'ls') out.append('<div>bin/  boot/  dev/  etc/  home/  root/  var/</div>');
+                    else if(cmd === 'sys') out.append('<div>Titanium Enterprise Edition v5.0<br>Kernel: JavaScript v8<br>Platform: WebBrowser</div>');
+                    else if(cmd.startsWith('open ')) {
+                        const app = cmd.replace('open ', '');
+                        openWin(`win-${app}`);
                     }
-                    else hist.append(`<div class="text-red-500">Lệnh không tồn tại: ${cmd}</div>`);
-
+                    else if(cmd === 'fetch') out.append('<div class="text-blue-400"># TITANIUM FETCH<br>-----------<br>OS: Titanium Enterprise<br>Shell: CommunityBash<br>Uptime: ' + Math.floor(performance.now()/1000) + 's</div>');
+                    else if(cmd !== "") out.append(`<div class="text-red-500">Error: Command '${cmd}' not found.</div>`);
+                    
                     $(this).val('');
-                    $('#terminal-out').scrollTop($('#terminal-out')[0].scrollHeight);
+                    $('#term-body').scrollTop($('#term-body')[0].scrollHeight);
                 }
             });
         }
+
+        function applySettings() {
+            const bg = $('#set-bg').val();
+            const ssh = $('#set-ssh').val();
+            if(bg) { $('body').css('background-image', `url(${bg})`); localStorage.setItem('ti_bg', bg); }
+            if(ssh) { $('#br-frame').attr('src', ssh); localStorage.setItem('ti_ssh', ssh); }
+            alert("Hệ thống đã được cập nhật!");
+            closeWin('win-settings');
+        }
+
+        function loadSettings() {
+            const bg = localStorage.getItem('ti_bg');
+            const ssh = localStorage.getItem('ti_ssh');
+            if(bg) { $('body').css('background-image', `url(${bg})`); $('#set-bg').val(bg); }
+            if(ssh) { $('#br-frame').attr('src', ssh); $('#set-ssh').val(ssh); }
+        }
+
+        function navBr() {
+            let url = $('#br-url').val();
+            if(!url.startsWith('http')) url = 'https://' + url;
+            $('#br-frame').attr('src', url);
+        }
+
+        function playSound() { document.getElementById('snd-click').play(); }
     </script>
 </body>
 </html>
