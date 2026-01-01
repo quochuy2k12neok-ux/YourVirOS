@@ -2,115 +2,91 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Community OS - Pro Edition</title>
+    <title>Community OS - Clean Edition</title>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        :root { --accent-color: #3b82f6; }
         body { 
             background: url('https://w.wallhaven.cc/full/xl/wallhaven-xlre9z.jpg') no-repeat center center fixed; 
-            background-size: cover; overflow: hidden; font-family: 'Segoe UI', sans-serif; transition: background 0.5s;
+            background-size: cover; overflow: hidden; font-family: 'Segoe UI', sans-serif;
         }
 
-        /* Desktop Icons */
-        .desktop-icon { 
-            width: 80px; display: flex; flex-direction: column; align-items: center; 
-            gap: 5px; cursor: pointer; padding: 10px; border-radius: 8px; transition: 0.2s;
-        }
-        .desktop-icon:hover { background: rgba(255,255,255,0.1); }
-        .desktop-icon img { width: 45px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3)); }
-        .desktop-icon span { font-size: 11px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); color: white; }
+        /* Icons trên màn hình */
+        .desktop-area { display: grid; grid-template-columns: repeat(auto-fill, 100px); grid-template-rows: repeat(auto-fill, 100px); gap: 10px; padding: 20px; }
+        .icon { width: 90px; height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; transition: 0.2s; }
+        .icon:hover { background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); }
+        .icon img { width: 48px; margin-bottom: 5px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+        .icon span { color: white; font-size: 12px; text-shadow: 1px 1px 4px rgba(0,0,0,1); font-weight: 500; }
 
-        /* Windows */
+        /* Cửa sổ ứng dụng */
         .window {
-            position: absolute; min-width: 500px; min-height: 350px; 
-            background: rgba(15, 15, 15, 0.8); backdrop-filter: blur(20px);
+            position: absolute; min-width: 600px; min-height: 400px; 
+            background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: none; flex-direction: column; z-index: 10;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: none; flex-direction: column; z-index: 10;
         }
-        .title-bar { 
-            padding: 12px; cursor: move; display: flex; justify-content: space-between; 
-            align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); 
-        }
-        .btn-red { width: 12px; height: 12px; background: #ff5f56; border-radius: 50%; cursor: pointer; }
-        .content { flex: 1; border-radius: 0 0 12px 12px; overflow: hidden; background: #000; }
+        .title-bar { padding: 10px 15px; cursor: move; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); border-radius: 12px 12px 0 0; }
+        .content { flex: 1; background: #000; overflow: hidden; border-radius: 0 0 12px 12px; }
         iframe { width: 100%; height: 100%; border: none; }
+
+        /* Nút Close kiểu macOS */
+        .close-btn { width: 14px; height: 14px; background: #ff5f56; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .close-btn:hover { background: #ff3b30; }
 
         /* Taskbar */
         .taskbar {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 48px;
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px);
-            display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 9999;
-        }
-        .start-btn { font-weight: bold; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-        #clock { font-size: 13px; color: white; font-weight: 500; }
-
-        /* Start Menu */
-        #start-menu {
-            position: fixed; bottom: 55px; left: 10px; width: 300px; 
-            background: rgba(20,20,20,0.95); border-radius: 12px; border: 1px solid #444;
-            display: none; padding: 20px; z-index: 10000;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 50px;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(15px);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 9999;
         }
     </style>
 </head>
 <body>
 
-    <div class="p-5 flex flex-col gap-4">
-        <div class="desktop-icon" onclick="openWindow('win-ssh')">
+    <div class="desktop-area">
+        <div class="icon" onclick="openWindow('win-ssh')">
             <img src="https://cdn-icons-png.flaticon.com/512/906/906324.png">
             <span>Terminal</span>
         </div>
-        <div class="desktop-icon" onclick="openWindow('win-file')">
+        <div class="icon" onclick="openWindow('win-file')">
             <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png">
-            <span>My Files</span>
+            <span>Explorer</span>
         </div>
-        <div class="desktop-icon" onclick="openWindow('win-settings')">
+        <div class="icon" onclick="openWindow('win-settings')">
             <img src="https://cdn-icons-png.flaticon.com/512/3132/3132141.png">
-            <span>Settings</span>
+            <span>Cấu Hình</span>
         </div>
     </div>
 
-    <div id="win-ssh" class="window" style="top:10%; left:20%;">
-        <div class="title-bar"><span>💻 Terminal</span><div class="btn-red" onclick="closeWindow('win-ssh')"></div></div>
-        <div class="content"><iframe id="frame-ssh"></iframe></div>
+    <div id="win-ssh" class="window" style="top:50px; left:100px;">
+        <div class="title-bar"><span class="text-white text-xs font-bold">Terminal</span><div class="close-btn" onclick="closeWindow('win-ssh')"></div></div>
+        <div class="content"><iframe id="frame-ssh" src="about:blank"></iframe></div>
     </div>
 
-    <div id="win-file" class="window" style="top:15%; left:25%;">
-        <div class="title-bar"><span>📂 File Manager</span><div class="btn-red" onclick="closeWindow('win-file')"></div></div>
-        <div class="content"><iframe id="frame-file"></iframe></div>
+    <div id="win-file" class="window" style="top:100px; left:150px;">
+        <div class="title-bar"><span class="text-white text-xs font-bold">File Manager</span><div class="close-btn" onclick="closeWindow('win-file')"></div></div>
+        <div class="content"><iframe id="frame-file" src="about:blank"></iframe></div>
     </div>
 
-    <div id="win-settings" class="window" style="top:30%; left:35%; min-width:300px;">
-        <div class="title-bar"><span>⚙️ Settings</span><div class="btn-red" onclick="closeWindow('win-settings')"></div></div>
-        <div class="content p-5 bg-slate-900 h-full">
-            <h3 class="text-blue-400 mb-2 font-bold">Kết nối VPS</h3>
-            <input id="in-ssh" type="text" placeholder="Link Tmate..." class="w-full bg-black border border-slate-700 p-2 text-xs mb-2 text-white">
-            <input id="in-file" type="text" placeholder="Link Cloudflare..." class="w-full bg-black border border-slate-700 p-2 text-xs mb-4 text-white">
-            <button onclick="applySettings()" class="w-full bg-blue-600 py-2 rounded text-xs font-bold mb-5">ÁP DỤNG</button>
-            
-            <h3 class="text-blue-400 mb-2 font-bold">Hình nền (URL)</h3>
-            <input id="in-bg" type="text" placeholder="Dán link ảnh..." class="w-full bg-black border border-slate-700 p-2 text-xs mb-2 text-white">
-            <button onclick="changeBG()" class="w-full bg-purple-600 py-2 rounded text-xs font-bold">ĐỔI HÌNH NỀN</button>
+    <div id="win-settings" class="window" style="top:150px; left:300px; min-width: 350px; min-height: 250px;">
+        <div class="title-bar"><span class="text-white text-xs font-bold">Cấu Hình Kết Nối</span><div class="close-btn" onclick="closeWindow('win-settings')"></div></div>
+        <div class="content p-6 bg-slate-900 h-full">
+            <p class="text-[10px] text-slate-500 mb-4 uppercase">Nhập Link từ Script VPS của bạn</p>
+            <input id="link-ssh" type="text" placeholder="Dán link Tmate..." class="w-full bg-black border border-slate-700 p-2 text-sm mb-2 text-green-400 rounded outline-none font-mono">
+            <input id="link-file" type="text" placeholder="Dán link Cloudflare..." class="w-full bg-black border border-slate-700 p-2 text-sm mb-4 text-blue-400 rounded outline-none font-mono">
+            <button onclick="apply()" class="w-full bg-blue-600 py-2 rounded text-white font-bold hover:bg-blue-700 transition">KẾT NỐI NGAY</button>
         </div>
     </div>
 
-    <div class="taskbar">
-        <div class="start-btn" onclick="$('#start-menu').toggle()">
-            <img src="https://cdn-icons-png.flaticon.com/512/174/174881.png" class="w-5"> Start
+    <div class="taskbar text-white">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+            <img src="https://cdn-icons-png.flaticon.com/512/174/174881.png" class="w-5">
+            <span class="text-sm font-bold">Community OS</span>
         </div>
-        <div id="clock">00:00:00</div>
-    </div>
-
-    <div id="start-menu">
-        <h2 class="text-white font-bold mb-4">Cộng Đồng OS</h2>
-        <ul class="text-sm text-slate-400 space-y-3">
-            <li class="hover:text-white cursor-pointer" onclick="alert('Phiên bản v1.0 Pro')">ℹ️ Thông tin hệ thống</li>
-            <li class="hover:text-white cursor-pointer" onclick="location.reload()">🔄 Khởi động lại</li>
-            <li class="hover:text-white cursor-pointer text-red-400" onclick="window.close()">🔴 Tắt máy</li>
-        </ul>
+        <div id="clock" class="text-sm font-mono text-slate-300">00:00:00</div>
     </div>
 
     <script>
@@ -118,32 +94,29 @@
             $(".window").draggable({ handle: ".title-bar" }).resizable();
             updateClock();
             setInterval(updateClock, 1000);
-            
-            // Load từ bộ nhớ
-            if(localStorage.getItem('bg')) $('body').css('background-image', `url(${localStorage.getItem('bg')})`);
+
+            // Tự động nạp link cũ nếu người dùng đã lưu lần trước
+            const savedS = localStorage.getItem('s_link'), savedF = localStorage.getItem('f_link');
+            if(savedS) { $('#link-ssh').val(savedS); $('#frame-ssh').attr('src', savedS); }
+            if(savedF) { $('#link-file').val(savedF); $('#frame-file').attr('src', savedF); }
         });
 
         function updateClock() {
-            const now = new Date();
-            $('#clock').text(now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0'));
+            const n = new Date();
+            $('#clock').text(n.toLocaleTimeString('en-GB'));
         }
 
         function openWindow(id) { $(`#${id}`).fadeIn(200); }
         function closeWindow(id) { $(`#${id}`).fadeOut(200); }
 
-        function applySettings() {
-            const s = $('#in-ssh').val(), f = $('#in-file').val();
+        function apply() {
+            const s = $('#link-ssh').val(), f = $('#link-file').val();
+            localStorage.setItem('s_link', s);
+            localStorage.setItem('f_link', f);
             if(s) $('#frame-ssh').attr('src', s);
             if(f) $('#frame-file').attr('src', f);
-            alert("Đã kết nối!");
-        }
-
-        function changeBG() {
-            const bg = $('#in-bg').val();
-            if(bg) {
-                $('body').css('background-image', `url(${bg})`);
-                localStorage.setItem('bg', bg);
-            }
+            alert("Đã lưu cấu hình và kết nối!");
+            closeWindow('win-settings');
         }
     </script>
 </body>
