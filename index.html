@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Community OS - Cloud Terminal</title>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            background: url('https://w.wallhaven.cc/full/85/wallhaven-85p87y.jpg') no-repeat center center fixed;
+            background-size: cover;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* Hiệu ứng kính mờ cho cửa sổ */
+        .window {
+            position: absolute;
+            min-width: 400px;
+            min-height: 300px;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+        }
+
+        .title-bar {
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.05);
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 10px 10px 0 0;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .content { flex: 1; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; background: #000; }
+
+        /* Taskbar phong cách Windows 11 / macOS */
+        .taskbar {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 60px;
+            background: rgba(15, 15, 15, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .app-icon {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .app-icon:hover { transform: scale(1.2) translateY(-5px); }
+
+        /* Nút điều khiển cửa sổ */
+        .controls span {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+        .close { background: #ff5f56; }
+        .min { background: #ffbd2e; }
+        .max { background: #27c93f; }
+    </style>
+</head>
+<body>
+
+    <div id="setup-modal" class="fixed inset-0 bg-black/80 z-[2000] flex items-center justify-center">
+        <div class="bg-slate-900 p-6 rounded-xl border border-slate-700 w-[400px]">
+            <h2 class="text-blue-400 font-bold mb-4 text-center">CÀI ĐẶT KẾT NỐI VPS</h2>
+            <input type="text" id="sshInput" placeholder="Dán link Tmate (SSH)..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded mb-3 text-sm outline-none text-white">
+            <input type="text" id="fileInput" placeholder="Dán link Cloudflare (File)..." class="w-full bg-slate-800 border border-slate-700 p-2 rounded mb-4 text-sm outline-none text-white">
+            <button onclick="startOS()" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded font-bold text-white transition">KHỞI ĐỘNG HỆ THỐNG</button>
+        </div>
+    </div>
+
+    <div id="win-terminal" class="window">
+        <div class="title-bar">
+            <span>💻 Console Terminal</span>
+            <div class="controls">
+                <span class="min" onclick="$('#win-terminal').fadeOut()"></span>
+                <span class="close" onclick="$('#win-terminal').fadeOut()"></span>
+            </div>
+        </div>
+        <div class="content"><iframe id="frame-ssh"></iframe></div>
+    </div>
+
+    <div id="win-files" class="window" style="left: 100px; top: 50px;">
+        <div class="title-bar">
+            <span>📂 File Manager (SFTP)</span>
+            <div class="controls">
+                <span class="min" onclick="$('#win-files').fadeOut()"></span>
+                <span class="close" onclick="$('#win-files').fadeOut()"></span>
+            </div>
+        </div>
+        <div class="content"><iframe id="frame-file"></iframe></div>
+    </div>
+
+    <div class="taskbar">
+        <img src="https://cdn-icons-png.flaticon.com/512/145/145867.png" class="app-icon" onclick="$('#setup-modal').fadeIn()" title="Cấu hình">
+        <img src="https://cdn-icons-png.flaticon.com/512/906/906324.png" class="app-icon" onclick="$('#win-terminal').show()" title="Terminal">
+        <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png" class="app-icon" onclick="$('#win-files').show()" title="Files">
+        <img src="https://cdn-icons-png.flaticon.com/512/2920/2920244.png" class="app-icon" onclick="location.reload()" title="Reset">
+    </div>
+
+    <script>
+        $(function() {
+            // Cho phép kéo thả cửa sổ
+            $(".window").draggable({ handle: ".title-bar" }).resizable();
+            
+            // Ưu tiên cửa sổ được nhấn
+            $(".window").mousedown(function() {
+                $(".window").css("z-index", 10);
+                $(this).css("z-index", 100);
+            });
+        });
+
+        function startOS() {
+            const ssh = document.getElementById('sshInput').value;
+            const file = document.getElementById('fileInput').value;
+            
+            if(ssh) {
+                document.getElementById('frame-ssh').src = ssh;
+                $('#win-terminal').fadeIn();
+            }
+            if(file) {
+                document.getElementById('frame-file').src = file;
+                $('#win-files').fadeIn();
+            }
+            $('#setup-modal').fadeOut();
+        }
+    </script>
+</body>
+</html>
