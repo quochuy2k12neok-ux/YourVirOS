@@ -3,574 +3,349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Community OS Enterprise - v2.0</title>
+    <title>Community OS Titanium - v4.0 Final</title>
     
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 
     <style>
-        /* --- CSS VARIABLES & CORE --- */
+        /* --- 1. CORE SYSTEM CSS (Phần này rất dài để tạo giao diện xịn) --- */
         :root {
-            --glass: rgba(15, 15, 15, 0.75);
-            --border: rgba(255, 255, 255, 0.1);
-            --accent: #3b82f6;
-            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --glass: rgba(15, 15, 15, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --accent: #0078d4;
+            --taskbar-bg: rgba(20, 20, 20, 0.85);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; cursor: default; -webkit-font-smoothing: antialiased; }
         body {
-            background: url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop') no-repeat center center fixed;
-            background-size: cover;
-            height: 100vh;
-            font-family: var(--font-main);
-            color: white;
-            overflow: hidden;
-            transition: 0.5s filter ease;
+            background: url('https://w.wallhaven.cc/full/pk/wallhaven-pk63m9.jpg') no-repeat center center fixed;
+            background-size: cover; height: 100vh; font-family: 'Segoe UI', system-ui; color: white; overflow: hidden;
         }
 
-        /* --- DESKTOP --- */
-        #desktop {
-            height: calc(100vh - 50px);
-            padding: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, 100px);
-            grid-template-rows: repeat(auto-fill, 110px);
-            grid-flow: column;
-            gap: 15px;
+        /* --- BOOT SCREEN --- */
+        #boot-screen {
+            position: fixed; inset: 0; background: black; z-index: 99999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
+        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .desktop-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 90px;
-            height: 100px;
-            border-radius: 8px;
-            transition: 0.2s;
-            cursor: pointer;
-            border: 1px solid transparent;
-        }
-
-        .desktop-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .desktop-item i {
-            font-size: 40px;
-            margin-bottom: 8px;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
-        }
-
-        .desktop-item span {
-            font-size: 11px;
-            text-align: center;
-            text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
-        }
-
-        /* --- WINDOW SYSTEM --- */
-        .window {
-            position: absolute;
-            background: var(--glass);
-            backdrop-filter: blur(25px);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.7);
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            z-index: 100;
-        }
-
-        .title-bar {
-            height: 40px;
-            padding: 0 15px;
-            background: rgba(255, 255, 255, 0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: move;
-        }
-
-        .title-bar-text { font-size: 13px; font-weight: 600; }
-
-        .window-controls { display: flex; gap: 8px; }
-
-        .ctrl-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; border: none; }
-        .btn-close { background: #ff5f56; }
-        .btn-min { background: #ffbd2e; }
-        .btn-max { background: #27c93f; }
-
-        .window-content { flex: 1; position: relative; overflow: auto; }
-
-        /* --- APPS STYLES --- */
-        #terminal-body { background: #000; font-family: 'Consolas', monospace; padding: 10px; color: #10b981; font-size: 13px; height: 100%; }
-        #notes-body textarea { width: 100%; height: 100%; background: transparent; color: white; border: none; outline: none; padding: 15px; resize: none; font-size: 14px; }
+        /* --- DESKTOP ENGINE --- */
+        #desktop { height: calc(100vh - 50px); position: relative; padding: 10px; z-index: 10; }
         
-        /* --- TASKBAR --- */
+        .desktop-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, 90px);
+            grid-template-rows: repeat(auto-fill, 100px); grid-flow: column; gap: 10px; height: 100%;
+        }
+
+        .icon {
+            width: 85px; height: 95px; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; border-radius: 6px; transition: 0.2s; border: 1px solid transparent;
+        }
+        .icon:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+        .icon i { font-size: 36px; margin-bottom: 8px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); }
+        .icon span { font-size: 11px; text-align: center; text-shadow: 1px 1px 3px black; font-weight: 500; }
+
+        /* --- WINDOWS FRAMEWORK --- */
+        .window {
+            position: absolute; background: var(--glass); backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border); border-radius: 10px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: none; flex-direction: column;
+            z-index: 100; min-width: 250px; min-height: 150px;
+        }
+        .title-bar {
+            height: 38px; padding: 0 12px; display: flex; justify-content: space-between;
+            align-items: center; background: rgba(255, 255, 255, 0.05); cursor: move; border-radius: 10px 10px 0 0;
+        }
+        .win-title { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .win-controls { display: flex; gap: 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; }
+        .dot-close { background: #ff5f56; } .dot-min { background: #ffbd2e; } .dot-max { background: #27c93f; }
+
+        .content { flex: 1; overflow: auto; position: relative; }
+
+        /* --- APPS SPECIFIC --- */
+        #terminal-out { background: #000; color: #0f0; font-family: 'Consolas', monospace; padding: 15px; height: 100%; overflow-y: auto; font-size: 13px; }
+        .file-item { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .file-item:hover { background: rgba(255,255,255,0.1); }
+
+        /* --- TASKBAR & START --- */
         #taskbar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 50px;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(15px);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 15px;
-            z-index: 9999;
-            border-top: 1px solid var(--border);
+            position: fixed; bottom: 0; left: 0; right: 0; height: 50px;
+            background: var(--taskbar-bg); backdrop-filter: blur(20px);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 10000;
         }
+        .start-btn { font-size: 24px; color: #0078d4; cursor: pointer; transition: 0.3s; }
+        .start-btn:hover { transform: scale(1.2) rotate(180deg); }
 
-        .taskbar-left, .taskbar-center, .taskbar-right { display: flex; align-items: center; gap: 10px; height: 100%; }
-
-        .start-btn {
-            font-size: 24px;
-            color: #3b82f6;
-            padding: 0 15px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .start-btn:hover { transform: rotate(180deg); color: #60a5fa; }
-
-        .taskbar-icon {
-            width: 35px;
-            height: 35px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .taskbar-icon:hover { background: rgba(255, 255, 255, 0.1); }
-        .taskbar-icon i { font-size: 20px; }
-
-        .system-time { text-align: right; font-size: 12px; color: #ccc; }
-
-        /* --- START MENU --- */
         #start-menu {
-            position: absolute;
-            bottom: 60px;
-            left: 10px;
-            width: 350px;
-            height: 480px;
-            background: rgba(20, 20, 20, 0.95);
-            backdrop-filter: blur(30px);
-            border: 1px solid var(--border);
-            border-radius: 15px;
-            display: none;
-            z-index: 10000;
-            padding: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,1);
+            position: absolute; bottom: 60px; left: 10px; width: 450px; height: 550px;
+            background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(30px); border-radius: 12px;
+            border: 1px solid var(--glass-border); display: none; z-index: 10001; padding: 25px;
         }
 
-        /* --- NOTIFICATION CENTER --- */
-        #notif-center {
-            position: absolute;
-            top: 0;
-            right: -320px;
-            width: 320px;
-            height: calc(100vh - 50px);
-            background: rgba(10, 10, 10, 0.8);
-            backdrop-filter: blur(20px);
-            border-left: 1px solid var(--border);
-            transition: 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-            z-index: 5000;
-            padding: 20px;
+        /* --- WIDGETS --- */
+        .widget { position: absolute; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; backdrop-filter: blur(10px); }
+        #weather-widget { top: 20px; right: 20px; width: 200px; }
+
+        /* --- CONTEXT MENU --- */
+        #context-menu {
+            position: absolute; background: rgba(30, 30, 30, 0.9); backdrop-filter: blur(15px);
+            border: 1px solid #444; border-radius: 8px; width: 180px; display: none; z-index: 100000;
+            padding: 5px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
         }
-
-        /* --- UTILS --- */
-        .glass-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); padding: 8px 15px; border-radius: 6px; cursor: pointer; transition: 0.3s; }
-        .glass-btn:hover { background: rgba(255, 255, 255, 0.2); }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        .menu-item { padding: 8px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; }
+        .menu-item:hover { background: var(--accent); }
     </style>
 </head>
-<body onclick="playSound('click')">
+<body oncontextmenu="return showContextMenu(event)">
+
+    <div id="boot-screen">
+        <img src="https://cdn-icons-png.flaticon.com/512/732/732221.png" width="80" class="mb-8">
+        <div class="spinner"></div>
+        <p class="mt-4 text-gray-500 font-mono text-sm">System Titanium Starting...</p>
+    </div>
 
     <div id="desktop">
-        <div class="desktop-item" onclick="openWindow('win-terminal')">
-            <i class="fas fa-terminal text-green-500"></i>
-            <span>Terminal</span>
-        </div>
-        <div class="desktop-item" onclick="openWindow('win-explorer')">
-            <i class="fas fa-folder text-yellow-500"></i>
-            <span>Explorer</span>
-        </div>
-        <div class="desktop-item" onclick="openWindow('win-notepad')">
-            <i class="fas fa-file-alt text-blue-300"></i>
-            <span>Notepad</span>
-        </div>
-        <div class="desktop-item" onclick="openWindow('win-browser')">
-            <i class="fas fa-globe text-blue-500"></i>
-            <span>Browser</span>
-        </div>
-        <div class="desktop-item" onclick="openWindow('win-taskmgr')">
-            <i class="fas fa-microchip text-red-500"></i>
-            <span>Task Mgr</span>
-        </div>
-        <div class="desktop-item" onclick="openWindow('win-settings')">
-            <i class="fas fa-cog text-gray-400"></i>
-            <span>Settings</span>
-        </div>
-        <div class="desktop-item" onclick="openWindow('win-calc')">
-            <i class="fas fa-calculator text-purple-400"></i>
-            <span>Calculator</span>
-        </div>
-    </div>
-
-    <div id="win-terminal" class="window" style="width: 700px; height: 450px; top: 50px; left: 100px;">
-        <div class="title-bar">
-            <div class="title-bar-text"><i class="fas fa-terminal mr-2"></i> Terminal</div>
-            <div class="window-controls">
-                <div class="ctrl-btn btn-min" onclick="hideWindow('win-terminal')"></div>
-                <div class="ctrl-btn btn-close" onclick="closeWindow('win-terminal')"></div>
+        <div class="desktop-grid" id="desktop-icons">
             </div>
-        </div>
-        <div class="window-content" id="terminal-body">
-            <div id="terminal-output">Community OS [Version 2.0.Enterprise]<br>(c) 2024 Community Corporation. All rights reserved.<br><br></div>
-            <div class="flex">
-                <span class="mr-2">root@community:~#</span>
-                <input type="text" id="terminal-input" class="bg-transparent border-none outline-none text-green-500 w-full font-mono">
+
+        <div class="widget" id="weather-widget">
+            <div class="flex justify-between items-center">
+                <i class="fas fa-sun text-yellow-400 text-3xl"></i>
+                <div class="text-right">
+                    <p class="text-2xl font-bold">32°C</p>
+                    <p class="text-[10px] text-gray-400">TP. Hồ Chí Minh</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="win-notepad" class="window" style="width: 500px; height: 400px; top: 150px; left: 200px;">
+    <div id="win-terminal" class="window" style="width: 700px; height: 450px;">
         <div class="title-bar">
-            <div class="title-bar-text"><i class="fas fa-file-alt mr-2"></i> Notepad</div>
-            <div class="window-controls">
-                <div class="ctrl-btn btn-close" onclick="closeWindow('win-notepad')"></div>
-            </div>
+            <div class="win-title"><i class="fas fa-terminal"></i> Terminal</div>
+            <div class="win-controls"><div class="dot dot-min"></div><div class="dot dot-close" onclick="closeWin('win-terminal')"></div></div>
         </div>
-        <div class="window-content" id="notes-body">
-            <textarea placeholder="Bắt đầu ghi chú..."></textarea>
+        <div class="content" id="terminal-out">
+            <div>Community OS Titanium [Version 4.0.Final]</div>
+            <div>(c) 2026 Community Corp. All rights reserved.</div><br>
+            <div id="term-history"></div>
+            <div class="flex"><span>root@community:~$ </span><input type="text" id="term-input" class="bg-transparent border-none outline-none text-green-500 ml-2 w-full"></div>
         </div>
     </div>
 
-    <div id="win-browser" class="window" style="width: 800px; height: 600px; top: 30px; left: 300px;">
+    <div id="win-explorer" class="window" style="width: 800px; height: 500px;">
         <div class="title-bar">
-            <div class="title-bar-text"><i class="fas fa-globe mr-2"></i> Web Browser</div>
-            <div class="window-controls">
-                <div class="ctrl-btn btn-close" onclick="closeWindow('win-browser')"></div>
+            <div class="win-title"><i class="fas fa-folder"></i> File Explorer</div>
+            <div class="win-controls"><div class="dot dot-close" onclick="closeWin('win-explorer')"></div></div>
+        </div>
+        <div class="flex h-full">
+            <div class="w-48 bg-white/5 p-4 text-xs border-r border-white/10">
+                <p class="mb-4 text-gray-500 uppercase font-bold">Quick Access</p>
+                <div class="space-y-3">
+                    <div class="hover:text-blue-400 cursor-pointer"><i class="fas fa-home mr-2"></i> Desktop</div>
+                    <div class="hover:text-blue-400 cursor-pointer"><i class="fas fa-download mr-2"></i> Downloads</div>
+                    <div class="hover:text-blue-400 cursor-pointer"><i class="fas fa-file mr-2"></i> Documents</div>
+                </div>
             </div>
-        </div>
-        <div class="flex p-2 bg-[#222] gap-2">
-            <input type="text" id="browser-url" class="flex-1 bg-black border border-gray-700 px-3 py-1 rounded-full text-xs text-white outline-none" placeholder="https://google.com">
-            <button onclick="navigateBrowser()" class="text-xs bg-blue-600 px-3 rounded-full">Go</button>
-        </div>
-        <div class="window-content">
-            <iframe id="browser-frame" src="about:blank"></iframe>
-        </div>
-    </div>
-
-    <div id="win-settings" class="window" style="width: 400px; height: 500px; top: 100px; left: 500px;">
-        <div class="title-bar">
-            <div class="title-bar-text"><i class="fas fa-cog mr-2"></i> System Settings</div>
-            <div class="window-controls">
-                <div class="ctrl-btn btn-close" onclick="closeWindow('win-settings')"></div>
-            </div>
-        </div>
-        <div class="window-content p-5">
-            <h3 class="border-b border-gray-700 pb-2 mb-4 text-blue-400 font-bold uppercase text-xs">Personalization</h3>
-            <label class="text-[11px] block mb-1">Wallpaper URL</label>
-            <input type="text" id="bg-input" class="w-full bg-black border border-gray-800 p-2 rounded text-xs mb-4">
-            
-            <h3 class="border-b border-gray-700 pb-2 mb-4 text-blue-400 font-bold uppercase text-xs">Connectivity</h3>
-            <label class="text-[11px] block mb-1">SSH Tmate Link</label>
-            <input type="text" id="ssh-input" class="w-full bg-black border border-gray-800 p-2 rounded text-xs mb-2 text-green-500">
-            <label class="text-[11px] block mb-1">File Manager Link</label>
-            <input type="text" id="file-input" class="w-full bg-black border border-gray-800 p-2 rounded text-xs mb-4 text-yellow-500">
-            
-            <button onclick="saveAllSettings()" class="w-full bg-blue-600 py-2 rounded font-bold text-sm">Apply Changes</button>
-        </div>
-    </div>
-
-    <div id="win-taskmgr" class="window" style="width: 350px; height: 450px; top: 50px; left: 50px;">
-        <div class="title-bar">
-            <div class="title-bar-text"><i class="fas fa-microchip mr-2"></i> Task Manager</div>
-            <div class="window-controls"><div class="ctrl-btn btn-close" onclick="closeWindow('win-taskmgr')"></div></div>
-        </div>
-        <div class="window-content p-4">
-            <div class="text-xs mb-4">
-                <p>CPU Usage: <span class="text-green-500" id="cpu-val">12%</span></p>
-                <div class="w-full h-1 bg-gray-800 mt-1"><div class="h-full bg-green-500" style="width: 12%"></div></div>
-            </div>
-            <div class="text-xs mb-6">
-                <p>Memory: <span class="text-blue-500" id="ram-val">1.2 GB / 16 GB</span></p>
-                <div class="w-full h-1 bg-gray-800 mt-1"><div class="h-full bg-blue-500" style="width: 45%"></div></div>
-            </div>
-            <h4 class="text-[10px] text-gray-500 uppercase mb-2">Running Processes</h4>
-            <div id="process-list" class="space-y-2">
+            <div class="flex-1 p-4 overflow-y-auto" id="file-list">
                 </div>
         </div>
     </div>
 
-    <div id="notif-center">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="font-bold">Notifications</h2>
-            <button onclick="toggleNotif()" class="text-xs text-gray-500">Close</button>
-        </div>
-        <div id="notif-list" class="space-y-4">
-            <div class="bg-white/5 p-3 rounded-lg border-l-4 border-blue-500">
-                <p class="text-xs font-bold">System Update</p>
-                <p class="text-[10px] text-gray-400">Community OS is up to date.</p>
-            </div>
+    <div id="win-store" class="window" style="width: 900px; height: 600px;">
+        <div class="title-bar"><div class="win-title"><i class="fas fa-shopping-bag"></i> App Store</div><div class="win-controls"><div class="dot dot-close" onclick="closeWin('win-store')"></div></div></div>
+        <div class="content p-8">
+            <h1 class="text-3xl font-bold mb-8">Featured Applications</h1>
+            <div class="grid grid-cols-3 gap-6" id="store-items">
+                </div>
         </div>
     </div>
 
     <div id="taskbar">
-        <div class="taskbar-left">
-            <div class="start-btn" onclick="toggleStart()"><i class="fab fa-windows"></i></div>
-            <div id="taskbar-apps" class="flex gap-2">
-                </div>
+        <div class="flex items-center gap-4">
+            <i class="fab fa-windows start-btn" onclick="$('#start-menu').toggle()"></i>
+            <div id="active-apps" class="flex gap-2"></div>
         </div>
-        
-        <div class="taskbar-center">
+        <div class="flex items-center gap-4">
+            <div class="text-right leading-tight">
+                <p id="clock-time" class="text-sm font-bold">12:00</p>
+                <p id="clock-date" class="text-[10px] text-gray-400">01/01/2026</p>
             </div>
+            <i class="fas fa-wifi text-xs"></i>
+            <i class="fas fa-volume-up text-xs"></i>
+        </div>
+    </div>
 
-        <div class="taskbar-right">
-            <div class="taskbar-icon" onclick="toggleNotif()"><i class="fas fa-comment-alt"></i></div>
-            <div class="system-time">
-                <div id="time-str" class="font-bold">12:00 PM</div>
-                <div id="date-str" class="text-[10px]">01/01/2024</div>
-            </div>
-        </div>
+    <div id="context-menu">
+        <div class="menu-item" onclick="location.reload()"><i class="fas fa-sync-alt mr-2"></i> Refresh</div>
+        <div class="menu-item"><i class="fas fa-sort mr-2"></i> Sort icons</div>
+        <hr class="border-white/10 my-1">
+        <div class="menu-item" onclick="openWin('win-settings')"><i class="fas fa-desktop mr-2"></i> Personalize</div>
     </div>
 
     <div id="start-menu">
-        <div class="flex items-center gap-4 mb-6 p-2 bg-white/5 rounded-xl">
-            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-800 flex items-center justify-center text-xl">👤</div>
-            <div>
-                <p class="text-sm font-bold">Administrator</p>
-                <p class="text-[10px] text-gray-500">Online</p>
-            </div>
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-xl font-bold">A</div>
+            <div><p class="font-bold">Administrator</p><p class="text-xs text-gray-500">Titanium Member</p></div>
         </div>
-        
-        <div class="grid grid-cols-2 gap-3 mb-6">
-            <div class="bg-white/5 p-3 rounded-lg hover:bg-white/10 cursor-pointer flex items-center gap-3" onclick="openWindow('win-settings')">
-                <i class="fas fa-user-cog text-blue-400"></i><span class="text-xs">Account</span>
+        <div class="grid grid-cols-2 gap-4" id="start-apps">
             </div>
-            <div class="bg-white/5 p-3 rounded-lg hover:bg-white/10 cursor-pointer flex items-center gap-3">
-                <i class="fas fa-shield-alt text-green-400"></i><span class="text-xs">Security</span>
-            </div>
-            <div class="bg-white/5 p-3 rounded-lg hover:bg-white/10 cursor-pointer flex items-center gap-3">
-                <i class="fas fa-images text-purple-400"></i><span class="text-xs">Photos</span>
-            </div>
-            <div class="bg-white/5 p-3 rounded-lg hover:bg-white/10 cursor-pointer flex items-center gap-3">
-                <i class="fas fa-music text-pink-400"></i><span class="text-xs">Music</span>
-            </div>
-        </div>
-
-        <div class="border-t border-gray-800 pt-4 flex justify-between items-center">
-            <button onclick="location.reload()" class="text-xs hover:text-blue-400"><i class="fas fa-power-off mr-2"></i>Restart</button>
-            <button onclick="window.close()" class="text-xs hover:text-red-500"><i class="fas fa-sign-out-alt mr-2"></i>Shutdown</button>
-        </div>
     </div>
 
-    <audio id="snd-click" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
-    <audio id="snd-open" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+    <audio id="snd-boot" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
 
     <script>
-        /* --- GLOBAL STATE --- */
-        let openApps = [];
-        let isNotifOpen = false;
+        // --- DATA REGISTRY (Hệ thống dữ liệu của OS) ---
+        const APPS = [
+            { id: 'terminal', name: 'Terminal', icon: 'fas fa-terminal', color: 'text-green-500' },
+            { id: 'explorer', name: 'Explorer', icon: 'fas fa-folder', color: 'text-yellow-500' },
+            { id: 'store', name: 'App Store', icon: 'fas fa-shopping-bag', color: 'text-pink-500' },
+            { id: 'browser', name: 'Browser', icon: 'fas fa-globe', color: 'text-blue-500' },
+            { id: 'notepad', name: 'Notepad', icon: 'fas fa-file-alt', color: 'text-blue-300' },
+            { id: 'taskmgr', name: 'Task Mgr', icon: 'fas fa-microchip', color: 'text-red-500' },
+            { id: 'music', name: 'Music', icon: 'fas fa-music', color: 'text-purple-400' },
+            { id: 'settings', name: 'Settings', icon: 'fas fa-cog', color: 'text-gray-400' },
+            { id: 'paint', name: 'Paint', icon: 'fas fa-paint-brush', color: 'text-orange-400' },
+            { id: 'calc', name: 'Calculator', icon: 'fas fa-calculator', color: 'text-indigo-400' },
+            { id: 'video', name: 'Video Player', icon: 'fas fa-play-circle', color: 'text-red-400' }
+        ];
 
-        /* --- INITIALIZATION --- */
+        const FILES = [
+            { name: 'system_core.dll', size: '4.2 MB', type: 'System' },
+            { name: 'readme.txt', size: '1 KB', type: 'Text' },
+            { name: 'wallpaper.jpg', size: '2.5 MB', type: 'Image' },
+            { name: 'password.vault', size: '12 KB', type: 'Secure' }
+        ];
+
+        // --- SYSTEM ENGINE ---
         $(document).ready(function() {
-            // Make windows draggable & resizable
-            $(".window").draggable({ handle: ".title-bar", stack: ".window" }).resizable({ minHeight: 200, minWidth: 300 });
+            // Boot sequence
+            setTimeout(() => {
+                $('#boot-screen').fadeOut(1000);
+                document.getElementById('snd-boot').play();
+            }, 3000);
 
-            // Clock Update
-            updateDateTime();
-            setInterval(updateDateTime, 1000);
-
-            // Simulation of CPU/RAM
-            setInterval(simulateStats, 3000);
-
-            // Terminal Core
+            initDesktop();
+            initStartMenu();
+            initStore();
             initTerminal();
+            updateClock();
+            setInterval(updateClock, 1000);
 
-            // Load Saved Data
-            loadSystemRegistry();
-
-            console.log("Community OS Enterprise Initialized successfully.");
-            pushNotification("Welcome", "System initialized and ready for commands.");
+            // Window Logic
+            $('.window').draggable({ handle: '.title-bar', stack: '.window' }).resizable();
+            $(document).on('mousedown', '.window', function() {
+                $('.window').css('z-index', 100);
+                $(this).css('z-index', 1000);
+            });
         });
 
-        /* --- WINDOW MANAGEMENT --- */
-        function openWindow(id) {
-            $(`#${id}`).fadeIn(300).css("display", "flex");
-            playSound('open');
-            if(!openApps.includes(id)) {
-                openApps.push(id);
-                updateTaskbar();
-            }
-            // Bring to front
-            $(".window").css("z-index", 100);
-            $(`#${id}`).css("z-index", 1000);
-            updateProcessList();
-        }
-
-        function closeWindow(id) {
-            $(`#${id}`).fadeOut(200);
-            openApps = openApps.filter(app => app !== id);
-            updateTaskbar();
-            updateProcessList();
-        }
-
-        function hideWindow(id) {
-            $(`#${id}`).fadeOut(200);
-        }
-
-        /* --- UI UPDATES --- */
-        function updateDateTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const dateStr = now.toLocaleDateString('vi-VN');
-            $('#time-str').text(timeStr);
-            $('#date-str').text(dateStr);
-        }
-
-        function updateTaskbar() {
-            const container = $('#taskbar-apps');
-            container.empty();
-            openApps.forEach(appId => {
-                const iconClass = $(`#${appId}`).find('.title-bar-text i').attr('class');
-                const btn = $(`<div class="taskbar-icon active" onclick="openWindow('${appId}')"><i class="${iconClass}"></i></div>`);
-                container.append(btn);
-            });
-        }
-
-        function toggleStart() { $('#start-menu').fadeToggle(200); }
-
-        function toggleNotif() {
-            if(!isNotifOpen) {
-                $('#notif-center').css('right', '0');
-                isNotifOpen = true;
-            } else {
-                $('#notif-center').css('right', '-320px');
-                isNotifOpen = false;
-            }
-        }
-
-        function pushNotification(title, msg) {
-            const n = $(`
-                <div class="bg-white/5 p-3 rounded-lg border-l-4 border-blue-500 animate-pulse">
-                    <p class="text-xs font-bold">${title}</p>
-                    <p class="text-[10px] text-gray-400">${msg}</p>
-                </div>
-            `);
-            $('#notif-list').prepend(n);
-            setTimeout(() => n.removeClass('animate-pulse'), 2000);
-        }
-
-        /* --- TERMINAL CORE --- */
-        function initTerminal() {
-            $('#terminal-input').on('keydown', function(e) {
-                if(e.key === 'Enter') {
-                    const cmd = $(this).val().trim();
-                    const output = $('#terminal-output');
-                    output.append(`<div>root@community:~# ${cmd}</div>`);
-                    
-                    processCommand(cmd, output);
-                    
-                    $(this).val('');
-                    $('#terminal-body').scrollTop($('#terminal-body')[0].scrollHeight);
-                }
-            });
-        }
-
-        function processCommand(cmd, output) {
-            const c = cmd.toLowerCase();
-            if(c === 'help') {
-                output.append('<div>Available: help, clear, date, system, whoami, fetch</div>');
-            } else if(c === 'clear') {
-                output.html('');
-            } else if(c === 'date') {
-                output.append(`<div>${new Date().toString()}</div>`);
-            } else if(c === 'whoami') {
-                output.append('<div>administrator - root access</div>');
-            } else if(c === 'system') {
-                output.append('<div>OS: Community Enterprise v2.0<br>Kernel: JS-Browser-L1<br>Memory: 16384MB</div>');
-            } else if(c === 'fetch') {
-                output.append('<div class="text-blue-400"># COMMUNITY FETCH<br>-----------<br>OS: WebOS v2<br>Shell: CommunityBash<br>Browser: ' + navigator.userAgent.substring(0, 40) + '...</div>');
-            } else if(cmd !== "") {
-                output.append(`<div class="text-red-500">Command not found: ${cmd}</div>`);
-            }
-        }
-
-        /* --- SETTINGS & REGISTRY --- */
-        function saveAllSettings() {
-            const bg = $('#bg-input').val();
-            const ssh = $('#ssh-input').val();
-            const file = $('#file-input').val();
-            
-            if(bg) {
-                localStorage.setItem('os_bg', bg);
-                $('body').css('background-image', `url(${bg})`);
-            }
-            if(ssh) {
-                localStorage.setItem('os_ssh', ssh);
-                $('#browser-frame').attr('src', ssh); // Link terminal vao browser tam thoi
-            }
-            localStorage.setItem('os_file', file);
-            
-            pushNotification("Settings", "System configuration saved successfully.");
-            closeWindow('win-settings');
-        }
-
-        function loadSystemRegistry() {
-            const bg = localStorage.getItem('os_bg');
-            if(bg) {
-                $('body').css('background-image', `url(${bg})`);
-                $('#bg-input').val(bg);
-            }
-            const ssh = localStorage.getItem('os_ssh');
-            const file = localStorage.getItem('os_file');
-            if(ssh) { $('#ssh-input').val(ssh); $('#browser-frame').attr('src', ssh); }
-            if(file) $('#file-input').val(file);
-        }
-
-        /* --- SYSTEM SIMULATION --- */
-        function simulateStats() {
-            const cpu = Math.floor(Math.random() * 30) + 5;
-            const ram = (Math.random() * 4 + 1).toFixed(1);
-            $('#cpu-val').text(`${cpu}%`);
-            $('#ram-val').text(`${ram} GB / 16 GB`);
-        }
-
-        function updateProcessList() {
-            const list = $('#process-list');
-            list.empty();
-            openApps.forEach(app => {
-                list.append(`
-                    <div class="flex justify-between items-center bg-white/5 p-2 rounded">
-                        <span class="text-[11px]">${app.replace('win-', '')}.exe</span>
-                        <span class="text-[10px] text-green-500">Active</span>
+        function initDesktop() {
+            const grid = $('#desktop-icons');
+            APPS.forEach(app => {
+                grid.append(`
+                    <div class="icon" ondblclick="openWin('win-${app.id}')">
+                        <i class="${app.icon} ${app.color}"></i>
+                        <span>${app.name}</span>
                     </div>
                 `);
             });
         }
 
-        function playSound(type) {
-            if(type === 'click') document.getElementById('snd-click').play();
-            if(type === 'open') document.getElementById('snd-open').play();
+        function initStartMenu() {
+            const startGrid = $('#start-apps');
+            APPS.forEach(app => {
+                startGrid.append(`
+                    <div class="flex items-center gap-3 p-3 hover:bg-white/10 rounded-lg cursor-pointer" onclick="openWin('win-${app.id}'); $('#start-menu').hide()">
+                        <i class="${app.icon} ${app.color} text-xl"></i>
+                        <span class="text-sm font-medium">${app.name}</span>
+                    </div>
+                `);
+            });
         }
 
-        function navigateBrowser() {
-            let url = $('#browser-url').val();
-            if(!url.startsWith('http')) url = 'https://' + url;
-            $('#browser-frame').attr('src', url);
+        function initStore() {
+            const store = $('#store-items');
+            APPS.forEach(app => {
+                store.append(`
+                    <div class="bg-white/5 p-6 rounded-2xl border border-white/10 hover:border-blue-500 transition">
+                        <i class="${app.icon} text-5xl mb-4 ${app.color}"></i>
+                        <h3 class="text-xl font-bold">${app.name} Pro</h3>
+                        <p class="text-xs text-gray-500 mb-6">Phiên bản doanh nghiệp hỗ trợ đa nền tảng.</p>
+                        <button class="w-full bg-blue-600 py-2 rounded-lg text-sm font-bold">Installed</button>
+                    </div>
+                `);
+            });
+        }
+
+        // --- APPS LOGIC ---
+        function openWin(id) {
+            $(`#${id}`).fadeIn(200).css('display', 'flex');
+            updateActiveApps();
+        }
+
+        function closeWin(id) {
+            $(`#${id}`).fadeOut(200);
+            updateActiveApps();
+        }
+
+        function updateActiveApps() {
+            const bar = $('#active-apps');
+            bar.empty();
+            $('.window:visible').each(function() {
+                const id = $(this).attr('id');
+                const app = APPS.find(a => `win-${a.id}` === id);
+                if(app) {
+                    bar.append(`<div class="w-10 h-10 bg-white/10 rounded flex items-center justify-center border-b-2 border-blue-500"><i class="${app.icon} ${app.color}"></i></div>`);
+                }
+            });
+        }
+
+        function updateClock() {
+            const now = new Date();
+            $('#clock-time').text(now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0'));
+            $('#clock-date').text(now.toLocaleDateString('vi-VN'));
+        }
+
+        function showContextMenu(e) {
+            e.preventDefault();
+            $('#context-menu').css({ top: e.pageY, left: e.pageX }).fadeIn(100);
+            return false;
+        }
+
+        $(document).click(() => $('#context-menu, #start-menu').hide());
+
+        // --- TERMINAL LOGIC ---
+        function initTerminal() {
+            $('#term-input').on('keydown', function(e) {
+                if(e.key === 'Enter') {
+                    const cmd = $(this).val();
+                    const hist = $('#term-history');
+                    hist.append(`<div>root@community:~$ ${cmd}</div>`);
+                    
+                    // Xử lý tập lệnh khổng lồ
+                    const action = cmd.toLowerCase();
+                    if(action === 'help') hist.append('<div>Lệnh hỗ trợ: help, ls, clear, date, sys, whoami, open [app]</div>');
+                    else if(action === 'ls') hist.append('<div>bin/  boot/  dev/  etc/  home/  lib/  root/</div>');
+                    else if(action === 'clear') hist.html('');
+                    else if(action === 'sys') hist.append('<div>Titanium Kernel v4.0.1-Final. Node: Community-Web-1</div>');
+                    else if(action.startsWith('open ')) {
+                        const target = action.replace('open ', '');
+                        openWin(`win-${target}`);
+                        hist.append(`<div class="text-blue-400 text-xs">Launching ${target}... Done.</div>`);
+                    }
+                    else hist.append(`<div class="text-red-500">Lệnh không tồn tại: ${cmd}</div>`);
+
+                    $(this).val('');
+                    $('#terminal-out').scrollTop($('#terminal-out')[0].scrollHeight);
+                }
+            });
         }
     </script>
 </body>
