@@ -2,122 +2,170 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Community OS - Clean Edition</title>
+    <title>Community OS Ultimate</title>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
-        body { 
-            background: url('https://w.wallhaven.cc/full/xl/wallhaven-xlre9z.jpg') no-repeat center center fixed; 
-            background-size: cover; overflow: hidden; font-family: 'Segoe UI', sans-serif;
-        }
-
-        /* Icons trên màn hình */
-        .desktop-area { display: grid; grid-template-columns: repeat(auto-fill, 100px); grid-template-rows: repeat(auto-fill, 100px); gap: 10px; padding: 20px; }
-        .icon { width: 90px; height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; transition: 0.2s; }
-        .icon:hover { background: rgba(255,255,255,0.15); backdrop-filter: blur(5px); }
-        .icon img { width: 48px; margin-bottom: 5px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
-        .icon span { color: white; font-size: 12px; text-shadow: 1px 1px 4px rgba(0,0,0,1); font-weight: 500; }
-
-        /* Cửa sổ ứng dụng */
+        :root { --bg-url: url('https://images.unsplash.com/photo-1477346611705-65d1883cee1e?auto=format&fit=crop&w=1920&q=80'); }
+        body { background: var(--bg-url) no-repeat center center fixed; background-size: cover; overflow: hidden; font-family: 'Inter', sans-serif; }
+        
+        /* Glassmorphism Cửa sổ */
         .window {
-            position: absolute; min-width: 600px; min-height: 400px; 
-            background: rgba(18, 18, 18, 0.8); backdrop-filter: blur(20px);
+            position: absolute; min-width: 300px; min-height: 200px; 
+            background: rgba(25, 25, 25, 0.7); backdrop-filter: blur(25px);
             border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: none; flex-direction: column; z-index: 10;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.6); display: none; flex-direction: column; z-index: 10;
+            animation: window-open 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .title-bar { padding: 10px 15px; cursor: move; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); border-radius: 12px 12px 0 0; }
-        .content { flex: 1; background: #000; overflow: hidden; border-radius: 0 0 12px 12px; }
-        iframe { width: 100%; height: 100%; border: none; }
-
-        /* Nút Close kiểu macOS */
-        .close-btn { width: 14px; height: 14px; background: #ff5f56; border-radius: 50%; cursor: pointer; transition: 0.2s; }
-        .close-btn:hover { background: #ff3b30; }
-
+        @keyframes window-open { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .title-bar { padding: 12px 18px; cursor: move; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 12px 12px 0 0; }
+        .window-content { flex: 1; overflow: auto; color: white; border-radius: 0 0 12px 12px; }
+        
         /* Taskbar */
         .taskbar {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 50px;
-            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(15px);
-            display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 9999;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 55px;
+            background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(20px);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 15px; z-index: 10000;
+            border-top: 1px solid rgba(255,255,255,0.05);
         }
+
+        .task-icon { width: 40px; height: 40px; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; }
+        .task-icon:hover { background: rgba(255,255,255,0.1); transform: translateY(-5px); }
+        .task-icon.active { border-bottom: 3px solid #3b82f6; }
+
+        /* Start Menu */
+        #start-menu {
+            position: fixed; bottom: 65px; left: 10px; width: 400px; height: 500px;
+            background: rgba(20,20,20,0.9); backdrop-filter: blur(30px); border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.1); display: none; z-index: 10001; padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+        /* App Icons trên Desktop */
+        .desktop-icons { padding: 20px; display: flex; flex-direction: column; gap: 10px; height: calc(100vh - 60px); flex-wrap: wrap; align-content: flex-start; }
+        .d-icon { width: 90px; height: 95px; padding: 10px; display: flex; flex-direction: column; align-items: center; cursor: pointer; border-radius: 10px; transition: 0.2s; }
+        .d-icon:hover { background: rgba(255,255,255,0.1); }
+        .d-icon i { font-size: 35px; color: #3b82f6; margin-bottom: 8px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.3)); }
+        .d-icon span { font-size: 11px; color: white; text-align: center; font-weight: 500; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+
+        /* Nút điều khiển */
+        .win-btn { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-left: 8px; cursor: pointer; }
+        .win-close { background: #ff5f56; }
+        .win-min { background: #ffbd2e; }
+        .win-max { background: #27c93f; }
+        
+        iframe { border: none; width: 100%; height: 100%; border-radius: 0 0 12px 12px; }
     </style>
 </head>
-<body>
+<body onclick="playClick()">
 
-    <div class="desktop-area">
-        <div class="icon" onclick="openWindow('win-ssh')">
-            <img src="https://cdn-icons-png.flaticon.com/512/906/906324.png">
-            <span>Terminal</span>
-        </div>
-        <div class="icon" onclick="openWindow('win-file')">
-            <img src="https://cdn-icons-png.flaticon.com/512/3767/3767084.png">
-            <span>Explorer</span>
-        </div>
-        <div class="icon" onclick="openWindow('win-settings')">
-            <img src="https://cdn-icons-png.flaticon.com/512/3132/3132141.png">
-            <span>Cấu Hình</span>
-        </div>
+    <div class="desktop-icons">
+        <div class="d-icon" onclick="openWindow('win-terminal')"><i class="fas fa-terminal text-green-400"></i><span>Terminal</span></div>
+        <div class="d-icon" onclick="openWindow('win-files')"><i class="fas fa-folder text-yellow-500"></i><span>Files</span></div>
+        <div class="d-icon" onclick="openWindow('win-web')"><i class="fas fa-globe text-blue-400"></i><span>Browser</span></div>
+        <div class="d-icon" onclick="openWindow('win-notes')"><i class="fas fa-file-alt text-gray-300"></i><span>Notepad</span></div>
+        <div class="d-icon" onclick="openWindow('win-music')"><i class="fas fa-music text-pink-500"></i><span>Music</span></div>
+        <div class="d-icon" onclick="openWindow('win-settings')"><i class="fas fa-cog text-gray-400"></i><span>Settings</span></div>
     </div>
 
-    <div id="win-ssh" class="window" style="top:50px; left:100px;">
-        <div class="title-bar"><span class="text-white text-xs font-bold">Terminal</span><div class="close-btn" onclick="closeWindow('win-ssh')"></div></div>
-        <div class="content"><iframe id="frame-ssh" src="about:blank"></iframe></div>
+    <div id="win-terminal" class="window" style="width: 700px; height: 450px; top: 10%; left: 15%;">
+        <div class="title-bar"><span><i class="fas fa-terminal mr-2"></i> Console</span><div class="flex"><div class="win-min" onclick="closeWindow('win-terminal')"></div><div class="win-close" onclick="closeWindow('win-terminal')"></div></div></div>
+        <div class="window-content"><iframe id="frame-ssh"></iframe></div>
     </div>
 
-    <div id="win-file" class="window" style="top:100px; left:150px;">
-        <div class="title-bar"><span class="text-white text-xs font-bold">File Manager</span><div class="close-btn" onclick="closeWindow('win-file')"></div></div>
-        <div class="content"><iframe id="frame-file" src="about:blank"></iframe></div>
+    <div id="win-notes" class="window" style="width: 400px; height: 500px; top: 20%; left: 40%;">
+        <div class="title-bar"><span><i class="fas fa-file-alt mr-2"></i> Notepad</span><div class="win-close" onclick="closeWindow('win-notes')"></div></div>
+        <div class="window-content p-4"><textarea class="w-full h-full bg-transparent outline-none text-white resize-none" placeholder="Ghi chú nhanh ở đây..."></textarea></div>
     </div>
 
-    <div id="win-settings" class="window" style="top:150px; left:300px; min-width: 350px; min-height: 250px;">
-        <div class="title-bar"><span class="text-white text-xs font-bold">Cấu Hình Kết Nối</span><div class="close-btn" onclick="closeWindow('win-settings')"></div></div>
-        <div class="content p-6 bg-slate-900 h-full">
-            <p class="text-[10px] text-slate-500 mb-4 uppercase">Nhập Link từ Script VPS của bạn</p>
-            <input id="link-ssh" type="text" placeholder="Dán link Tmate..." class="w-full bg-black border border-slate-700 p-2 text-sm mb-2 text-green-400 rounded outline-none font-mono">
-            <input id="link-file" type="text" placeholder="Dán link Cloudflare..." class="w-full bg-black border border-slate-700 p-2 text-sm mb-4 text-blue-400 rounded outline-none font-mono">
-            <button onclick="apply()" class="w-full bg-blue-600 py-2 rounded text-white font-bold hover:bg-blue-700 transition">KẾT NỐI NGAY</button>
+    <div id="win-music" class="window" style="width: 350px; height: 150px; top: 50%; left: 60%;">
+        <div class="title-bar"><span><i class="fas fa-music mr-2"></i> Player</span><div class="win-close" onclick="closeWindow('win-music')"></div></div>
+        <div class="window-content flex items-center justify-center p-4">
+            <i class="fas fa-step-backward mx-4 cursor-pointer hover:text-blue-400"></i>
+            <i class="fas fa-play-circle text-4xl cursor-pointer hover:text-blue-400"></i>
+            <i class="fas fa-step-forward mx-4 cursor-pointer hover:text-blue-400"></i>
         </div>
     </div>
 
-    <div class="taskbar text-white">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
-            <img src="https://cdn-icons-png.flaticon.com/512/174/174881.png" class="w-5">
-            <span class="text-sm font-bold">Community OS</span>
+    <div id="win-settings" class="window" style="width: 450px; height: 400px; top: 25%; left: 30%;">
+        <div class="title-bar"><span>⚙️ Hệ Thống</span><div class="win-close" onclick="closeWindow('win-settings')"></div></div>
+        <div class="window-content p-6 bg-[#1a1a1a]">
+            <label class="text-xs text-gray-500">LINK SSH (TMATE)</label>
+            <input id="set-ssh" type="text" class="w-full bg-black p-2 rounded mt-1 mb-4 border border-gray-800 text-green-400">
+            <label class="text-xs text-gray-500">HÌNH NỀN (URL)</label>
+            <input id="set-bg" type="text" class="w-full bg-black p-2 rounded mt-1 mb-6 border border-gray-800 text-white">
+            <button onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded font-bold transition">LƯU CẤU HÌNH</button>
         </div>
-        <div id="clock" class="text-sm font-mono text-slate-300">00:00:00</div>
     </div>
+
+    <div class="taskbar">
+        <div class="flex items-center gap-3">
+            <div class="task-icon bg-blue-600" onclick="$('#start-menu').toggle()"><i class="fab fa-windows"></i></div>
+            <div id="clock" class="ml-4 font-mono text-sm text-gray-400">00:00</div>
+        </div>
+        <div class="flex gap-4">
+            <div class="task-icon" onclick="openWindow('win-terminal')"><i class="fas fa-terminal"></i></div>
+            <div class="task-icon" onclick="openWindow('win-web')"><i class="fas fa-globe"></i></div>
+        </div>
+        <div class="task-icon text-red-500" onclick="location.reload()"><i class="fas fa-power-off"></i></div>
+    </div>
+
+    <div id="start-menu">
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-500 to-purple-600 flex items-center justify-center text-3xl">👤</div>
+            <div><h3 class="font-bold text-xl">Admin</h3><p class="text-xs text-gray-500">Cộng đồng Linux</p></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="p-3 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer" onclick="openWindow('win-settings')"><i class="fas fa-user-cog mr-2"></i> Settings</div>
+            <div class="p-3 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer"><i class="fas fa-shield-alt mr-2"></i> Security</div>
+            <div class="p-3 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer"><i class="fas fa-info-circle mr-2"></i> About</div>
+            <div class="p-3 bg-white/5 rounded-lg hover:bg-white/10 cursor-pointer" onclick="location.reload()"><i class="fas fa-sync mr-2"></i> Restart</div>
+        </div>
+    </div>
+
+    <audio id="click-sound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
 
     <script>
         $(function() {
             $(".window").draggable({ handle: ".title-bar" }).resizable();
             updateClock();
             setInterval(updateClock, 1000);
-
-            // Tự động nạp link cũ nếu người dùng đã lưu lần trước
-            const savedS = localStorage.getItem('s_link'), savedF = localStorage.getItem('f_link');
-            if(savedS) { $('#link-ssh').val(savedS); $('#frame-ssh').attr('src', savedS); }
-            if(savedF) { $('#link-file').val(savedF); $('#frame-file').attr('src', savedF); }
+            
+            // Tự động load link
+            const s = localStorage.getItem('ssh');
+            if(s) { $('#frame-ssh').attr('src', s); $('#set-ssh').val(s); }
+            const bg = localStorage.getItem('bg');
+            if(bg) document.documentElement.style.setProperty('--bg-url', `url(${bg})`);
         });
 
         function updateClock() {
-            const n = new Date();
-            $('#clock').text(n.toLocaleTimeString('en-GB'));
+            const now = new Date();
+            $('#clock').text(now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0'));
         }
 
-        function openWindow(id) { $(`#${id}`).fadeIn(200); }
+        function openWindow(id) { 
+            $(`#${id}`).fadeIn(200); 
+            $(".window").css("z-index", 10);
+            $(`#${id}`).css("z-index", 100);
+        }
+
         function closeWindow(id) { $(`#${id}`).fadeOut(200); }
 
-        function apply() {
-            const s = $('#link-ssh').val(), f = $('#link-file').val();
-            localStorage.setItem('s_link', s);
-            localStorage.setItem('f_link', f);
-            if(s) $('#frame-ssh').attr('src', s);
-            if(f) $('#frame-file').attr('src', f);
-            alert("Đã lưu cấu hình và kết nối!");
+        function saveSettings() {
+            const ssh = $('#set-ssh').val();
+            const bg = $('#set-bg').val();
+            if(ssh) { localStorage.setItem('ssh', ssh); $('#frame-ssh').attr('src', ssh); }
+            if(bg) { localStorage.setItem('bg', bg); document.documentElement.style.setProperty('--bg-url', `url(${bg})`); }
+            alert("Đã cập nhật hệ thống!");
             closeWindow('win-settings');
         }
+
+        function playClick() { document.getElementById('click-sound').play(); }
     </script>
 </body>
 </html>
